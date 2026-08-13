@@ -39,6 +39,16 @@ _Avoid_: grandfathered, legacy debt
 **Stale entry**:
 A baseline entry whose method no longer exists or is no longer over the limits. Warns by default, fails in strict mode.
 
+**Epsilon**:
+The fixed 0.05 allowance added to a baselined CRAP score before comparison. Absorbs score noise between runs. A constant, not a setting.
+
+**Prune**:
+Baseline cleanup that deletes stale entries and lowers entries whose method improved. Never adds an entry, never raises a number.
+
+**Regenerate**:
+Rewriting the baseline from today's code. Re-admits debt that got worse, so it is deliberate and reviewed.
+_Avoid_: refresh
+
 **Method key**:
 The identity of a method for baseline matching, class name plus method name plus JVM descriptor. Line numbers are never part of it.
 

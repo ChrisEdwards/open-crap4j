@@ -6,6 +6,11 @@ the crap-diy.5 amendments (slack, tighten, re-baseline). They tell one story in
 order: first run, adopt a baseline, improve code, require tight, regress,
 misconfigure, advisory, clean.
 
+**Amended 2026-08-13 by crap-diy.4.** The open question at the bottom is
+resolved. The alternate's worst-passing view ships as `--show-passing <N>`, an
+opt-in extra text section on `check` and `report`, N explicit with no default.
+The default output shape here is unchanged. Details at research/cli-spec.md.
+
 ## Format rules
 
 - **Grouped sections, no status column.** Violations, then baselined debt,

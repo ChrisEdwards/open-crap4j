@@ -67,6 +67,10 @@ Scoring every method in the report.
 Restricting the report to methods in a supplied list of source files. The tool never computes the list itself.
 _Avoid_: diff mode, changed mode
 
+**Outdated report**:
+A coverage report older than a changed source file it should describe. The tool warns, it does not fail.
+_Avoid_: stale report
+
 **Advisory mode**:
 Reporting violations without failing the build, exit code 0.
 _Avoid_: warn-only mode

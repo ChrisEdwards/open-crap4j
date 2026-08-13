@@ -52,10 +52,18 @@ final class LambdaFolder {
         if (candidates.isEmpty()) {
             return null;
         }
-        JacocoMethod target = resolveCandidate(lambda, candidates);
-        return LAMBDA_NAME.matcher(target.name()).matches()
-                ? resolveTarget(target, methods, visited)
-                : target;
+        List<JacocoMethod> sourceCandidates = candidates.stream()
+                .filter(candidate -> !isLambda(candidate))
+                .toList();
+        if (!sourceCandidates.isEmpty()) {
+            return resolveCandidate(lambda, sourceCandidates);
+        }
+        JacocoMethod transitiveTarget = resolveCandidate(lambda, candidates);
+        return resolveTarget(transitiveTarget, methods, visited);
+    }
+
+    private static boolean isLambda(JacocoMethod method) {
+        return LAMBDA_NAME.matcher(method.name()).matches();
     }
 
     private static JacocoMethod resolveCandidate(

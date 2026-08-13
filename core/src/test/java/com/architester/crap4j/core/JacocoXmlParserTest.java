@@ -118,6 +118,24 @@ class JacocoXmlParserTest {
     }
 
     @Test
+    void foldsAnOrdinaryLambdaWhenItsLineEqualsTheTargetFirstLine() throws Exception {
+        JacocoClass parsedClass = parseClass("""
+                <method name="work" desc="()V" line="52">
+                  <counter type="INSTRUCTION" missed="0" covered="2"/>
+                </method>
+                <method name="lambda$work$0" desc="()V" line="52">
+                  <counter type="INSTRUCTION" missed="1" covered="0"/>
+                </method>
+                """);
+
+        assertThat(parsedClass.methods()).singleElement().satisfies(work -> {
+            assertThat(work.name()).isEqualTo("work");
+            assertThat(work.counters())
+                    .containsEntry(CounterType.INSTRUCTION, new Counter(1, 2));
+        });
+    }
+
+    @Test
     void foldsConstructorAndFieldInitializerLambdasIntoTheFirstLineTiedConstructor()
             throws Exception {
         JacocoClass sample = parsedClass("report.xml", "Sample");
@@ -220,15 +238,29 @@ class JacocoXmlParserTest {
     }
 
     @Test
-    void keepsJdk8NullAndMissingTargetsStandalone() throws Exception {
+    void keepsJdk8NullTargetStandalone() throws Exception {
         JacocoClass parsedClass = parseClass("""
                 <method name="lambda$null$0" desc="()V" line="1"/>
-                <method name="lambda$generated$1" desc="()V" line="2"/>
                 """);
 
         assertThat(parsedClass.methods())
                 .extracting(JacocoMethod::name)
-                .containsExactly("lambda$null$0", "lambda$generated$1");
+                .containsExactly("lambda$null$0");
+    }
+
+    @Test
+    void keepsLambdaStandaloneWhenItsGeneratedTargetWasFilteredOut() throws Exception {
+        JacocoClass parsedClass = parseClass("""
+                <method name="lambda$generated$1" desc="()V" line="2">
+                  <counter type="INSTRUCTION" missed="1" covered="0"/>
+                </method>
+                """);
+
+        assertThat(parsedClass.methods()).singleElement().satisfies(lambda -> {
+            assertThat(lambda.name()).isEqualTo("lambda$generated$1");
+            assertThat(lambda.counters())
+                    .containsEntry(CounterType.INSTRUCTION, new Counter(1, 0));
+        });
     }
 
     @Test

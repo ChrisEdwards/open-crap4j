@@ -2,6 +2,8 @@
 
 Locked 2026-08-13 by the crap-diy.5 grilling session. This supersedes research doc section 5.4. It also amends the vocabulary of research/report-and-baseline-spec.md, prune becomes tighten, regenerate becomes re-baseline, stale becomes slack. The amendment note in that file carries the details.
 
+**Amended 2026-08-13 by crap-diy.7.** `excludeAnnotations` is dropped from v1, annotation-based exclusion is impossible from JaCoCo XML (no annotation data in the report, see the matching amendment in research/cli-spec.md). The default exclusion set is stated explicitly there, path glob `**/generated/**` plus class-name regexes for MapStruct, Dagger, Hilt, and AutoValue generated classes.
+
 ## Identity
 
 - Plugin id `com.architester.crap4j`. Matches the base package. Users never type the "open-" brand name in a build file.
@@ -26,7 +28,6 @@ crap4j {
     }
     excludes.set(listOf(...))           // ListProperty<String>, path globs
     excludeClasses.set(listOf(...))     // ListProperty<String>, class-name regexes
-    excludeAnnotations.set(listOf(...)) // ListProperty<String>, annotation simple names
     useDefaultExclusions.set(true)      // Property<Boolean>, convention true
 }
 ```
@@ -34,7 +35,7 @@ crap4j {
 - **`jacocoXml` is a single file.** One gate reads one report, everywhere. Combining coverage is JaCoCo's job, done correctly at the execution-data level, never ours at the XML level (see ADR 0003). The reserved per-method `module` field in the JSON report stays unwritten in v1.
 - **Baseline convention with graceful absence.** If the conventional file exists it is used, if not the gate runs baseline-less. An *explicitly configured* path that is missing is an error, silence there would hide a typo.
 - **No changed-file mode in the plugin.** The CLI owns it. Baseline gating already keeps whole-repo runs PR-safe.
-- The exclusion knobs and their built-in generated-code defaults are core semantics shared with the CLI, defined in research doc section 2.
+- The exclusion knobs and their built-in generated-code defaults are core semantics shared with the CLI, per the crap-diy.7 amendment in research/cli-spec.md (path globs and class regexes only, no annotation tier).
 - The text summary always prints to the console. The `formats` block governs report files only.
 
 ## Tasks

@@ -2,6 +2,8 @@
 
 Locked 2026-08-13 by the crap-diy.4 grilling session. This supersedes research doc section 5.3. It also resolves two questions other specs deferred here, the changed-file behavior of `requireTightBaseline` (report spec) and the worst-passing flag (text report spec).
 
+**Amended 2026-08-13 by crap-diy.7.** `--exclude-annotation` is dropped from v1. JaCoCo XML carries only method names, descriptors, lines, and counters, no annotation data, so annotation-based exclusion is impossible under ADR 0001 (JaCoCo XML is the only input). JaCoCo's own filters catch annotations with CLASS or RUNTIME retention whose name ends in `Generated` (lombok, Dagger), but SOURCE-retention annotations like javax/jakarta `@Generated` are invisible to JaCoCo and to us. Path globs and class regexes are the exclusion tools. The built-in defaults are now, path glob `**/generated/**`, class-name regexes `.*MapperImpl$`, `^Dagger.*`, `^Hilt_.*`, `^AutoValue_.*` (applied to the simple class name), switched off together by `--use-default-exclusions=false`.
+
 ## Identity and shipping
 
 - The command is **`crap4j`**. Usage and help text use that name. The "open-" brand appears only in repo and artifact names, matching the Gradle decision that users never type it.
@@ -40,7 +42,6 @@ Shared analysis inputs, accepted by all four verbs.
 --complexity-cap <int>              default 15
 --exclude <glob>                    repeatable
 --exclude-class <regex>             repeatable
---exclude-annotation <name>         repeatable
 --use-default-exclusions=true|false default true
 ```
 

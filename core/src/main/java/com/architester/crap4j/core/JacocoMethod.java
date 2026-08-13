@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.OptionalInt;
 
-/** A method exactly as represented by a JaCoCo class element. */
+/** A JaCoCo method after synthetic lambda bodies have been folded into source methods. */
 public record JacocoMethod(
         String name,
         String descriptor,

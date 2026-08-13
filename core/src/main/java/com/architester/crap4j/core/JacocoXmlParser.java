@@ -107,7 +107,7 @@ public final class JacocoXmlParser {
                     line.isEmpty() ? OptionalInt.empty() : OptionalInt.of(Integer.parseInt(line)),
                     parseCounters(methodElement)));
         }
-        return methods;
+        return LambdaFolder.fold(methods);
     }
 
     private static Map<CounterType, Counter> parseCounters(Element methodElement) {

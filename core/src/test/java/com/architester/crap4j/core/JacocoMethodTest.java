@@ -1,4 +1,4 @@
-package org.opencrap4j.core;
+package com.architester.crap4j.core;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

@@ -1,4 +1,4 @@
-package org.opencrap4j.core;
+package com.architester.crap4j.core;
 
 /** A JaCoCo counter's missed and covered values. */
 public record Counter(int missed, int covered) {

@@ -1,0 +1,3 @@
+# JaCoCo XML is the only input
+
+Both complexity and coverage come from the JaCoCo XML report the build already produces. We do not parse Java source (crap-java's approach) and we do not instrument or run tests (the original crap4j's approach). This gives us no parser to maintain, no test re-run, one consistent method model for both numbers, and makes lambda folding possible. The accepted costs, bytecode complexity runs higher than source-level counts so our cc will not match Checkstyle or SonarQube, a stale report silently describes old code, and projects without JaCoCo get nothing. Full trade-off analysis in research/crap4j-research-findings.md section 5.0.

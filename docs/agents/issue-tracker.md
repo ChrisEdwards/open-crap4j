@@ -15,7 +15,7 @@ The workspace is at `.beads/` with issue prefix `crap`.
 - **Apply labels**: `br label add <id> "label-name"`
 - **Remove labels**: `br label remove <id> "label-name"`
 - **Close**: `br close <id>`
-- **Dependencies**: `br dep add <id> --blocks <other-id>`
+- **Dependencies**: `br dep add <issue> <depends-on>` (the first issue is blocked by the second)
 
 ## Syncing
 

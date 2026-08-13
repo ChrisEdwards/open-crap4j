@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE report [
+  <!ENTITY external SYSTEM "file:///open-crap4j-xxe-must-not-be-read">
+]>
+<report name="Malicious report">
+  <package name="com/example/myapp">
+    <class name="com/example/myapp/MyService" sourcefilename="MyService.java">
+      <method name="processOrder" desc="()V">
+        <probe>&external;</probe>
+        <counter type="INSTRUCTION" missed="1" covered="2"/>
+        <counter type="LINE" missed="1" covered="1"/>
+        <counter type="COMPLEXITY" missed="1" covered="1"/>
+        <counter type="METHOD" missed="0" covered="1"/>
+      </method>
+    </class>
+  </package>
+</report>

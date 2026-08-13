@@ -4,6 +4,8 @@ Locked 2026-08-12 by the crap-diy.1 grilling session. This supersedes research d
 
 **Amended 2026-08-13 by crap-diy.5.** Vocabulary renames, prune becomes **tighten**, regenerate becomes **re-baseline**, stale becomes **slack** (JSON fields `staleEntries` and `staleBaselineEntries` renamed to `slackEntries` and `slackBaselineEntries`, safe because no code or readers exist yet, formatVersion stays 1). Slack gains a third case, `excess-allowance`, and strict mode is the Gradle property `requireTightBaseline`, which fails on every slack entry. Details in research/gradle-plugin-spec.md.
 
+**Amended 2026-08-13 by crap-diy.3.** When a tight baseline is required, slack entries count as violations in `summary.violations` too, not only in the top-level `status`. The text report renders the count as `2 violations (2 slack)`. In the default warn mode `summary.violations` excludes slack, unchanged. Text output shape is locked at research/text-report-spec.md.
+
 ## Shared conventions
 
 Both files follow these rules.

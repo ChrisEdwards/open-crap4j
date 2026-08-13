@@ -2,7 +2,10 @@ package org.opencrap4j.core;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.Optional;
 import java.util.OptionalInt;
 import org.junit.jupiter.api.Test;
 
@@ -24,7 +27,7 @@ class JacocoXmlParserTest {
                 .filter(candidate -> candidate.name().equals("Sample"))
                 .findFirst()
                 .orElseThrow();
-        assertThat(sample.sourceFile()).isEqualTo("Sample.java");
+        assertThat(sample.sourceFile()).hasValue("Sample.java");
 
         JacocoMethod switchMethod = sample.methods().stream()
                 .filter(candidate -> candidate.name().equals("sw"))
@@ -52,6 +55,14 @@ class JacocoXmlParserTest {
     }
 
     @Test
+    void representsMissingSourceFileAsAbsent() throws Exception {
+        JacocoReport report = new JacocoXmlParser().parse(FIXTURES.resolve("nd.xml"));
+
+        assertThat(report.packages().get(0).classes().get(0).sourceFile())
+                .isEqualTo(Optional.empty());
+    }
+
+    @Test
     void parsesTheEnumOnlyFixture() throws Exception {
         JacocoReport report = new JacocoXmlParser().parse(FIXTURES.resolve("enum.xml"));
 
@@ -74,5 +85,27 @@ class JacocoXmlParserTest {
         assertThat(parsedClass.name()).isEqualTo("com/example/myapp/MyService");
         assertThat(parsedClass.methods().get(0).counters())
                 .doesNotContainKey(CounterType.BRANCH);
+    }
+
+    @Test
+    void parsesPackagesNestedInGroups() throws Exception {
+        String xml = """
+                <report name="Grouped">
+                  <group name="application">
+                    <group name="feature">
+                      <package name="com/example">
+                        <class name="com/example/Example" sourcefilename="Example.java"/>
+                      </package>
+                    </group>
+                  </group>
+                </report>
+                """;
+
+        JacocoReport report = new JacocoXmlParser().parse(
+                new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)));
+
+        assertThat(report.packages())
+                .extracting(JacocoPackage::name)
+                .containsExactly("com/example");
     }
 }

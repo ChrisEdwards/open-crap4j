@@ -17,6 +17,8 @@ public record JacocoMethod(
         Objects.requireNonNull(descriptor, "descriptor");
         Objects.requireNonNull(line, "line");
         Objects.requireNonNull(counters, "counters");
-        counters = Collections.unmodifiableMap(new EnumMap<>(counters));
+        EnumMap<CounterType, Counter> counterCopy = new EnumMap<>(CounterType.class);
+        counterCopy.putAll(counters);
+        counters = Collections.unmodifiableMap(counterCopy);
     }
 }

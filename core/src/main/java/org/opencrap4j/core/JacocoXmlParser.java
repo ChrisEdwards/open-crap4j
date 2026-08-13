@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.OptionalInt;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
@@ -69,11 +70,18 @@ public final class JacocoXmlParser {
         return builder;
     }
 
-    private static List<JacocoPackage> parsePackages(Element report) {
+    private static List<JacocoPackage> parsePackages(Element container) {
         List<JacocoPackage> packages = new ArrayList<>();
-        for (Element packageElement : children(report, "package")) {
-            packages.add(new JacocoPackage(
-                    packageElement.getAttribute("name"), parseClasses(packageElement)));
+        for (Node child = container.getFirstChild(); child != null; child = child.getNextSibling()) {
+            if (!(child instanceof Element element)) {
+                continue;
+            }
+            if ("package".equals(element.getTagName())) {
+                packages.add(new JacocoPackage(
+                        element.getAttribute("name"), parseClasses(element)));
+            } else if ("group".equals(element.getTagName())) {
+                packages.addAll(parsePackages(element));
+            }
         }
         return packages;
     }
@@ -83,7 +91,7 @@ public final class JacocoXmlParser {
         for (Element classElement : children(packageElement, "class")) {
             classes.add(new JacocoClass(
                     classElement.getAttribute("name"),
-                    classElement.getAttribute("sourcefilename"),
+                    optionalAttribute(classElement, "sourcefilename"),
                     parseMethods(classElement)));
         }
         return classes;
@@ -122,5 +130,11 @@ public final class JacocoXmlParser {
             }
         }
         return matches;
+    }
+
+    private static Optional<String> optionalAttribute(Element element, String name) {
+        return element.hasAttribute(name)
+                ? Optional.of(element.getAttribute(name))
+                : Optional.empty();
     }
 }

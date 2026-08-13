@@ -2,6 +2,8 @@
 
 Locked 2026-08-12 by the crap-diy.1 grilling session. This supersedes research doc sections 5.1 (json parts) and 5.5. CSV output and CRAP-load metrics are out of scope for v1 per the map.
 
+**Amended 2026-08-13 by crap-diy.5.** Vocabulary renames, prune becomes **tighten**, regenerate becomes **re-baseline**, stale becomes **slack** (JSON fields `staleEntries` and `staleBaselineEntries` renamed to `slackEntries` and `slackBaselineEntries`, safe because no code or readers exist yet, formatVersion stays 1). Slack gains a third case, `excess-allowance`, and strict mode is the Gradle property `requireTightBaseline`, which fails on every slack entry. Details in research/gradle-plugin-spec.md.
+
 ## Shared conventions
 
 Both files follow these rules.
@@ -32,15 +34,15 @@ Top-level shape is fixed. Every field below is always present with one exception
     "methodsAnalyzed": 430,
     "violations": 1,
     "baselinedDebt": 1,
-    "staleEntries": 1,
+    "slackEntries": 1,
     "excluded": 12
   },
   "methods": [ ... ],
-  "staleBaselineEntries": [ ... ]
+  "slackBaselineEntries": [ ... ]
 }
 ```
 
-- **`status`** is three-valued. `pass`, no violations. `fail`, violations found and the gate is enforcing. `advisory`, violations found but advisory mode let the build through. `fail` appears only when the build really failed, so consumers grepping for it never false-alarm on advisory runs. Baselined debt never moves status off `pass`. Stale entries move it only in strict mode, where a stale entry counts as a violation for status purposes, so the same three-value logic applies.
+- **`status`** is three-valued. `pass`, no violations. `fail`, violations found and the gate is enforcing. `advisory`, violations found but advisory mode let the build through. `fail` appears only when the build really failed, so consumers grepping for it never false-alarm on advisory runs. Baselined debt never moves status off `pass`. Slack entries move it only when a tight baseline is required (`requireTightBaseline`), where a slack entry counts as a violation for status purposes, so the same three-value logic applies. A never-failing report run (Gradle `crapReport`) is a permanently advisory run, `advisory: true`, status `pass` or `advisory`.
 - **`advisory`** is the mode flag. A clean advisory run reads `status: "pass", advisory: true`.
 - **`mode`** is `whole-repo` or `changed-file`.
 - **No timestamp.** Reports are throwaway build outputs, CI stamps everything already.
@@ -75,9 +77,9 @@ Sorted by `crap` descending, worst first. Tie-break ascending by `class`, `metho
 - **`coverageKind`** is `branch` when the merged BRANCH counter total is positive, else `instruction`.
 - Omission rule, per-method fields that carry no information are omitted. Top-level fields never are.
 
-### Stale baseline entries
+### Slack baseline entries
 
-`staleBaselineEntries` lists baseline entries that no longer earn their place. Minimal on purpose, identity plus reason only. If the method still exists its current numbers are in `methods`, listing them twice invites disagreement.
+`slackBaselineEntries` lists baseline entries with slack, the entries `crapBaselineTighten` would shrink or delete. Minimal on purpose, identity plus reason only. If the method still exists its current numbers are in `methods`, listing them twice invites disagreement.
 
 ```json
 {
@@ -88,11 +90,11 @@ Sorted by `crap` descending, worst first. Tie-break ascending by `class`, `metho
 }
 ```
 
-`reason` is `method-gone` (no such method in the report) or `under-limits` (method exists and now passes both gates on its own).
+`reason` is `method-gone` (no such method in the report), `under-limits` (method exists and now passes both gates on its own), or `excess-allowance` (method still fails a gate but its stored numbers sit meaningfully above today's, stored crap exceeds current by more than the epsilon, or stored complexity exceeds current).
 
 ## Baseline file
 
-Checked into the repo, human-reviewable in diffs. Entries sort alphabetically by `class`, then `method`, then `descriptor`, for minimal stable diffs. Keeps a `generated` timestamp because regeneration is a deliberate, reviewed act.
+Checked into the repo, human-reviewable in diffs. Entries sort alphabetically by `class`, then `method`, then `descriptor`, for minimal stable diffs. Keeps a `generated` timestamp because re-baselining is a deliberate, reviewed act.
 
 ```json
 {
@@ -123,30 +125,30 @@ One mechanism grandfathers both gates. Each entry stores `crap` and `complexity`
 1. Method over the CRAP threshold or the complexity cap, not in the baseline, **violation**.
 2. Method in the baseline, current crap ≤ stored crap + epsilon AND current complexity ≤ stored complexity, **baselined**, passes with a warning.
 3. Method in the baseline that exceeds either stored number, **violation**, with `crap-regressed` and/or `complexity-regressed` reasons. More complexity is new debt even when added tests keep CRAP flat.
-4. Baseline entry that is stale, warn by default and list it in `staleBaselineEntries`. A strict mode (flag shape belongs to the CLI and Gradle tickets) counts every stale entry as a violation, including for the top-level status, so `fail` still only appears when the build really failed.
+4. Baseline entry with slack, warn by default and list it in `slackBaselineEntries`. Requiring a tight baseline (`requireTightBaseline` in Gradle, CLI spelling belongs to crap-diy.4) counts every slack entry as a violation, including for the top-level status, so `fail` still only appears when the build really failed. The failure message names the remedy, run `crapBaselineTighten`.
 
-**Epsilon is a fixed constant, 0.05, not a setting.** It absorbs floating-point noise, it is not policy, the threshold is the policy knob. The gate compares the full-precision current score against the stored two-decimal value plus 0.05. Complexity compares exactly, it is an integer.
+**Epsilon is a fixed constant, 0.05, not a setting.** It absorbs floating-point noise, it is not policy, the threshold is the policy knob. The gate compares the full-precision current score against the stored two-decimal value plus 0.05. Complexity compares exactly, it is an integer. The same epsilon guards slack detection in the other direction, an entry has `excess-allowance` slack only when the stored crap exceeds the current score by more than 0.05, so coverage wobble cannot flap the tight state.
 
 ## Config mismatch handling
 
-- `formatVersion` or `coverageSelection` differs from the current tool, **hard fail**, demand regeneration. These change what the numbers mean, comparisons would be silently wrong.
+- `formatVersion` or `coverageSelection` differs from the current tool, **hard fail**, demand a re-baseline. These change what the numbers mean, comparisons would be silently wrong.
 - `threshold` or `complexityCap` differs, **warn and gate normally** against current config. Tightening the limits is supposed to surface new violations, one `crapBaseline` run re-admits them if desired.
 
-## Prune versus regenerate
+## Tighten versus re-baseline
 
-- **Regenerate** rewrites the file from today's code. It re-admits debt that got worse since the last baseline. Deliberate, shows up in review as a diff.
-- **Prune** never adds an entry and never raises a number. It deletes stale entries and lowers `crap`/`complexity` on entries whose method improved but still fails, locking in progress so a method baselined at 92 cannot drift from 50 back to 90 unnoticed.
+- **Re-baseline** rewrites the file from today's code (`crapBaseline`, first run or again). It re-admits debt that got worse since the last baseline. Deliberate, shows up in review as a diff.
+- **Tighten** (`crapBaselineTighten`) never adds an entry and never raises a number. It deletes `method-gone` and `under-limits` entries and lowers `crap`/`complexity` on `excess-allowance` entries, locking in progress so a method baselined at 92 cannot drift from 50 back to 90 unnoticed. It lowers crap only past the epsilon and complexity on any decrease, so a tight baseline is exactly one tighten would not change.
 
 ## Changed-file mode
 
 The baseline is a whole-repo artifact.
 
 - Gating against the baseline works normally on the methods analyzed.
-- Stale detection is disabled, an absent method may simply be outside the slice. `staleEntries` is 0 and `staleBaselineEntries` empty.
-- Baseline writes (generate and prune) refuse to run in changed-file mode, they would silently drop every entry outside the diff.
+- Slack detection is disabled, an absent method may simply be outside the slice. `slackEntries` is 0 and `slackBaselineEntries` empty. Requiring a tight baseline is therefore inert in changed-file mode, whether that is a no-op or an error belongs to the CLI ticket.
+- Baseline writes (re-baseline and tighten) refuse to run in changed-file mode, they would silently drop every entry outside the diff.
 
 ## Deliberately deferred
 
 - Failures-only output is a CLI flag (crap-diy.4) that filters the `methods` array. No schema change.
-- Multi-module aggregation semantics and any optional per-method `module` field belong to the Gradle ticket (crap-diy.5). The version rules above already allow the addition.
-- Exit codes and the strict-stale flag spelling belong to the CLI ticket (crap-diy.4). `status: fail` must align with the failing exit code.
+- Multi-module aggregation was resolved by crap-diy.5, one analysis reads one report, combining coverage stays upstream in JaCoCo, and the optional per-method `module` field stays reserved and unwritten in v1. The version rules above already allow the addition.
+- Exit codes and the CLI spelling of the require-tight-baseline switch belong to the CLI ticket (crap-diy.4). `status: fail` must align with the failing exit code.

@@ -6,6 +6,8 @@ Locked 2026-08-12 by the crap-diy.1 grilling session. This supersedes research d
 
 **Amended 2026-08-13 by crap-diy.3.** When a tight baseline is required, slack entries count as violations in `summary.violations` too, not only in the top-level `status`. The text report renders the count as `2 violations (2 slack)`. In the default warn mode `summary.violations` excludes slack, unchanged. Text output shape is locked at research/text-report-spec.md.
 
+**Noted 2026-08-13 by crap-diy.9.** The JUnit sidecar (research/junit-sidecar-spec.md) renders this report. Its invariant, the count of `<failure>` rows equals `summary.violations` in every mode. No field here changes.
+
 **Amended 2026-08-13 by crap-diy.4.** The deferrals to the CLI ticket are resolved at research/cli-spec.md. The CLI spelling is `--require-tight-baseline`, and combining it with `--changed-files` is a usage error (exit 1) rather than an inert no-op, on both gating and report-only runs. Exit codes, 0 pass or advisory, 1 usage or input error, 2 violations, with exit 2 appearing exactly when `status` is `fail`. The failures-only-output idea became `--show-passing <N>`, an opt-in text section, no schema change.
 
 ## Shared conventions

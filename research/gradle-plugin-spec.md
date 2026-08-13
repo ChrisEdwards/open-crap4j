@@ -81,4 +81,4 @@ This vocabulary replaces "stale", amended into the report spec and glossary.
 - Changed-file support in the plugin. A list-of-files property can be added compatibly later.
 - Writing the per-method `module` field.
 - Convenience sugar that auto-detects `jacoco-report-aggregation` and wires the merged report.
-- JUnit XML sidecar semantics (what is a testcase, what is a failure, advisory behavior) belong to their own ticket.
+- ~~JUnit XML sidecar semantics (what is a testcase, what is a failure, advisory behavior)~~ resolved at research/junit-sidecar-spec.md (crap-diy.9).

@@ -74,3 +74,7 @@ _Avoid_: stale report
 **Advisory mode**:
 Reporting violations without failing the build, exit code 0.
 _Avoid_: warn-only mode
+
+**JUnit sidecar**:
+A secondary report in JUnit XML format that CI systems render as test results, one testcase per scored method. Red rows equal violations, gray rows are baselined debt and warned slack.
+_Avoid_: JUnit report (it is not a test report)

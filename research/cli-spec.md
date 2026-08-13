@@ -60,7 +60,7 @@ Per-verb flags.
 
 - `report` keeps `--require-tight-baseline` because it changes the JSON `status` (pass versus advisory) and the violation counts. Dashboards may want the strict posture.
 - `report` drops `--advisory`, it is inherently advisory (JSON gets `advisory: true`, status `pass` or `advisory`).
-- `--junit-report` fixes the flag spelling and verb placement only. Sidecar semantics (what is a testcase, what is a failure) belong to crap-diy.9.
+- `--junit-report` fixes the flag spelling and verb placement only. Sidecar semantics are locked at research/junit-sidecar-spec.md (crap-diy.9).
 
 ### Refusals, all usage errors, exit 1
 
@@ -109,5 +109,5 @@ In changed-file mode only, warn on stderr when any listed file that matched is n
 
 - Distribution channel and coordinates, crap-diy.8.
 - Repo module layout and how the fat jar is built, crap-diy.6.
-- JUnit sidecar semantics, crap-diy.9.
+- ~~JUnit sidecar semantics, crap-diy.9~~, resolved at research/junit-sidecar-spec.md.
 - CSV output, out of scope for v1 per the map.

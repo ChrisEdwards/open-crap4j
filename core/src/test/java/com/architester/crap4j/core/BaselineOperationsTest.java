@@ -1,0 +1,142 @@
+package com.architester.crap4j.core;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.OptionalInt;
+import org.junit.jupiter.api.Test;
+
+class BaselineOperationsTest {
+    private static final GateConfig CONFIG =
+            new GateConfig(15.0, 15, CoverageSelection.BRANCH_PREFERRED, false, false);
+    private static final String NOW = "2026-08-13T12:00:00Z";
+
+    @Test
+    void rebaselineStoresOnlyCurrentDebtRoundedToTwoDecimals() {
+        ScoredMethod passing = method("passing", 15.0, 15);
+        ScoredMethod debt = method("debt", 18.515, 16);
+
+        Baseline baseline = new BaselineOperations()
+                .rebaseline(new ScoringResult(List.of(passing, debt), 0), CONFIG, "0.1.0", NOW);
+
+        assertThat(baseline.formatVersion()).isEqualTo(1);
+        assertThat(baseline.toolVersion()).isEqualTo("0.1.0");
+        assertThat(baseline.generated()).isEqualTo(NOW);
+        assertThat(baseline.entries())
+                .containsExactly(new BaselineEntry(MethodKey.of(debt), 18.52, 16));
+    }
+
+    @Test
+    void tightenDeletesGoneAndPassingEntriesAndLowersOnlyExcessAllowance() {
+        ScoredMethod improved = method("improved", 20.0, 16);
+        ScoredMethod passing = method("passing", 10.0, 10);
+        ScoredMethod newDebt = method("newDebt", 30.0, 20);
+        Baseline original = baseline(
+                entry("gone", 30.0, 20),
+                entry("improved", 25.0, 18),
+                entry("passing", 20.0, 16));
+
+        Baseline tightened = new BaselineOperations().tighten(
+                original,
+                new ScoringResult(List.of(improved, passing, newDebt), 0),
+                CONFIG,
+                NOW);
+
+        assertThat(tightened.generated()).isEqualTo(NOW);
+        assertThat(tightened.entries())
+                .containsExactly(new BaselineEntry(MethodKey.of(improved), 20.0, 16));
+    }
+
+    @Test
+    void tightenIsANoOpAtTheEpsilonBoundaryAndWhenAlreadyTight() {
+        ScoredMethod current = method("run", 20.0, 16);
+        Baseline exactBoundary = baseline(entry("run", 20.05, 16));
+
+        Baseline unchanged = new BaselineOperations().tighten(
+                exactBoundary, new ScoringResult(List.of(current), 0), CONFIG, NOW);
+
+        assertThat(unchanged).isSameAs(exactBoundary);
+        assertThat(unchanged.generated()).isEqualTo(exactBoundary.generated());
+
+        Baseline pastBoundary = baseline(entry("run", 20.050_001, 16));
+        assertThat(new BaselineOperations()
+                        .tighten(
+                                pastBoundary,
+                                new ScoringResult(List.of(current), 0),
+                                CONFIG,
+                                NOW)
+                        .entries())
+                .containsExactly(entry("run", 20.0, 16));
+    }
+
+    @Test
+    void tighteningLocksInImprovementBeforeLaterDrift() {
+        ScoredMethod originalDebt = method("run", 92.0, 16);
+        Baseline original = baseline(entry("run", 92.0, 16));
+        ScoredMethod improved = method("run", 50.0, 16);
+
+        GateResult beforeTighten = gate(method("run", 90.0, 16), original);
+        Baseline tightened = new BaselineOperations().tighten(
+                original, new ScoringResult(List.of(improved), 0), CONFIG, NOW);
+        GateResult afterTighten = gate(method("run", 90.0, 16), tightened);
+
+        assertThat(originalDebt.crapScore()).isEqualTo(92.0);
+        assertThat(beforeTighten.methods().get(0).status()).isEqualTo(MethodStatus.BASELINED);
+        assertThat(tightened.entries().get(0).crapScore()).isEqualTo(50.0);
+        assertThat(afterTighten.methods().get(0).status()).isEqualTo(MethodStatus.VIOLATION);
+        assertThat(afterTighten.methods().get(0).reasons())
+                .containsExactly(GateReason.CRAP_REGRESSED);
+    }
+
+    @Test
+    void baselineWritesRefuseChangedFileMode() {
+        GateConfig changedFiles =
+                new GateConfig(15.0, 15, CoverageSelection.BRANCH_PREFERRED, false, true);
+        ScoringResult scoring = new ScoringResult(List.of(method("run", 20.0, 16)), 0);
+
+        assertThatThrownBy(() -> new BaselineOperations()
+                        .rebaseline(scoring, changedFiles, "0.1.0", NOW))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("whole-repo");
+        assertThatThrownBy(() -> new BaselineOperations()
+                        .tighten(baseline(entry("run", 20.0, 16)), scoring, changedFiles, NOW))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("whole-repo");
+    }
+
+    private static GateResult gate(ScoredMethod method, Baseline baseline) {
+        return new BaselineGate().evaluate(
+                new ScoringResult(List.of(method), 0), Optional.of(baseline), CONFIG);
+    }
+
+    private static Baseline baseline(BaselineEntry... entries) {
+        return new Baseline(
+                1,
+                "0.1.0",
+                "2026-08-12T00:00:00Z",
+                CoverageSelection.BRANCH_PREFERRED,
+                15.0,
+                15,
+                List.of(entries));
+    }
+
+    private static BaselineEntry entry(String methodName, double crapScore, int complexity) {
+        return new BaselineEntry(
+                new MethodKey("com/example/Service", methodName, "()V"), crapScore, complexity);
+    }
+
+    private static ScoredMethod method(String methodName, double crapScore, int complexity) {
+        return new ScoredMethod(
+                "com/example/Service",
+                methodName,
+                "()V",
+                Optional.of("Service.java"),
+                OptionalInt.of(42),
+                complexity,
+                0.5,
+                CoverageKind.BRANCH,
+                crapScore);
+    }
+}

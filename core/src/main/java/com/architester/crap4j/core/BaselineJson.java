@@ -6,7 +6,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 /** Reads and writes the dependency-free baseline JSON format. */
@@ -55,11 +54,11 @@ public final class BaselineJson {
         StringBuilder json = new StringBuilder();
         json.append("{\n")
                 .append("  \"formatVersion\": ").append(baseline.formatVersion()).append(",\n")
-                .append("  \"toolVersion\": ").append(quoted(baseline.toolVersion())).append(",\n")
-                .append("  \"generated\": ").append(quoted(baseline.generated())).append(",\n")
+                .append("  \"toolVersion\": ").append(JsonText.quoted(baseline.toolVersion())).append(",\n")
+                .append("  \"generated\": ").append(JsonText.quoted(baseline.generated())).append(",\n")
                 .append("  \"coverageSelection\": ")
-                .append(quoted(baseline.coverageSelection().serializedName())).append(",\n")
-                .append("  \"threshold\": ").append(policyDecimal(baseline.threshold())).append(",\n")
+                .append(JsonText.quoted(baseline.coverageSelection().serializedName())).append(",\n")
+                .append("  \"threshold\": ").append(JsonText.policyDecimal(baseline.threshold())).append(",\n")
                 .append("  \"complexityCap\": ").append(baseline.complexityCap()).append(",\n")
                 .append("  \"entries\": [");
         if (!baseline.entries().isEmpty()) {
@@ -68,48 +67,15 @@ public final class BaselineJson {
         for (int index = 0; index < baseline.entries().size(); index++) {
             BaselineEntry entry = baseline.entries().get(index);
             json.append("    {\n")
-                    .append("      \"class\": ").append(quoted(entry.key().className())).append(",\n")
-                    .append("      \"method\": ").append(quoted(entry.key().methodName())).append(",\n")
-                    .append("      \"descriptor\": ").append(quoted(entry.key().descriptor())).append(",\n")
-                    .append("      \"crap\": ").append(decimal(entry.crapScore(), 2)).append(",\n")
+                    .append("      \"class\": ").append(JsonText.quoted(entry.key().className())).append(",\n")
+                    .append("      \"method\": ").append(JsonText.quoted(entry.key().methodName())).append(",\n")
+                    .append("      \"descriptor\": ").append(JsonText.quoted(entry.key().descriptor())).append(",\n")
+                    .append("      \"crap\": ").append(JsonText.decimal(entry.crapScore(), 2)).append(",\n")
                     .append("      \"complexity\": ").append(entry.complexity()).append("\n")
                     .append("    }");
             json.append(index + 1 < baseline.entries().size() ? ",\n" : "\n");
         }
         return json.append("  ]\n}\n").toString();
-    }
-
-    private static String decimal(double value, int scale) {
-        return String.format(Locale.ROOT, "%." + scale + "f", value);
-    }
-
-    private static String policyDecimal(double value) {
-        String decimal = java.math.BigDecimal.valueOf(value).stripTrailingZeros().toPlainString();
-        return decimal.contains(".") ? decimal : decimal + ".0";
-    }
-
-    private static String quoted(String value) {
-        StringBuilder result = new StringBuilder("\"");
-        for (int index = 0; index < value.length(); index++) {
-            char character = value.charAt(index);
-            switch (character) {
-                case '\"' -> result.append("\\\"");
-                case '\\' -> result.append("\\\\");
-                case '\b' -> result.append("\\b");
-                case '\f' -> result.append("\\f");
-                case '\n' -> result.append("\\n");
-                case '\r' -> result.append("\\r");
-                case '\t' -> result.append("\\t");
-                default -> {
-                    if (character < 0x20) {
-                        result.append(String.format(Locale.ROOT, "\\u%04x", (int) character));
-                    } else {
-                        result.append(character);
-                    }
-                }
-            }
-        }
-        return result.append('\"').toString();
     }
 
     private static Object required(Map<String, Object> object, String field) {

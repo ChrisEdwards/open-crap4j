@@ -1,0 +1,32 @@
+{
+  "formatVersion": 1,
+  "toolVersion": "1.0.0",
+  "status": "pass",
+  "advisory": false,
+  "mode": "whole-repo",
+  "threshold": 15.0,
+  "complexityCap": 15,
+  "coverageSelection": "branch-preferred",
+  "summary": {
+    "methodsAnalyzed": 1,
+    "violations": 0,
+    "baselinedDebt": 0,
+    "slackEntries": 0,
+    "excluded": 0
+  },
+  "methods": [
+    {
+      "class": "com/example/Service",
+      "method": "run",
+      "descriptor": "()V",
+      "sourceFile": "Service.java",
+      "line": 42,
+      "complexity": 1,
+      "coverage": 1.0000,
+      "coverageKind": "branch",
+      "crap": 1.00,
+      "status": "ok"
+    }
+  ],
+  "slackBaselineEntries": []
+}

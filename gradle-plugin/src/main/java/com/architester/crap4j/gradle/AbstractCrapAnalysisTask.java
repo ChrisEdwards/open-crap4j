@@ -32,7 +32,9 @@ import org.gradle.api.tasks.PathSensitivity;
 
 /** Thin Gradle wrapper around core gating and report writers. */
 public abstract class AbstractCrapAnalysisTask extends AbstractCrapTask {
-    @Internal
+    @InputFile
+    @org.gradle.api.tasks.Optional
+    @PathSensitive(PathSensitivity.RELATIVE)
     public abstract RegularFileProperty getBaseline();
 
     @Internal
@@ -41,8 +43,8 @@ public abstract class AbstractCrapAnalysisTask extends AbstractCrapTask {
     @InputFile
     @org.gradle.api.tasks.Optional
     @PathSensitive(PathSensitivity.RELATIVE)
-    public final Provider<RegularFile> getExistingBaseline() {
-        return getBaseline().filter(file -> file.getAsFile().isFile());
+    public final Provider<RegularFile> getExistingConventionalBaseline() {
+        return getConventionalBaseline().filter(file -> file.getAsFile().isFile());
     }
 
     @Input
@@ -109,19 +111,20 @@ public abstract class AbstractCrapAnalysisTask extends AbstractCrapTask {
     }
 
     private Optional<Baseline> readBaseline() throws IOException {
-        Path path = getBaseline().get().getAsFile().toPath();
-        if (Files.isRegularFile(path)) {
-            return Optional.of(BaselineJson.read(path));
-        }
-        Path conventional = getConventionalBaseline().get().getAsFile().toPath();
-        if (!path.equals(conventional)) {
-            throw new GradleException("Baseline does not exist: " + path);
-        }
-        return Optional.empty();
+        RegularFile configured = getBaseline().getOrNull();
+        Path path = configured == null
+                ? getConventionalBaseline().get().getAsFile().toPath()
+                : configured.getAsFile().toPath();
+        return Files.isRegularFile(path)
+                ? Optional.of(BaselineJson.read(path))
+                : Optional.empty();
     }
 
     private String displayBaseline() {
-        return getBaseline().get().getAsFile().getName();
+        RegularFile configured = getBaseline().getOrNull();
+        return (configured == null
+                ? getConventionalBaseline().get().getAsFile()
+                : configured.getAsFile()).getName();
     }
 
     private static void write(RegularFileProperty output, String contents) throws IOException {

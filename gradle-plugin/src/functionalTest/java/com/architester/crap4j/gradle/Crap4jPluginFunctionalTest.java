@@ -48,17 +48,7 @@ class Crap4jPluginFunctionalTest {
     @ParameterizedTest
     @MethodSource("supportedGradleVersions")
     void crapCheckWritesReportsBeforeFailingOnViolations(String gradleVersion) throws IOException {
-        Files.writeString(projectDirectory.resolve("build.gradle"), """
-                plugins {
-                    id 'com.architester.crap4j'
-                }
-
-                crap4j {
-                    jacocoXml.set(layout.projectDirectory.file('jacoco.xml'))
-                    threshold.set(1.0d)
-                    complexityCap.set(1)
-                }
-                """);
+        writeAggregatorBuild(1.0d, 1);
 
         BuildResult result = runAndFail(gradleVersion, "crapCheck");
 
@@ -73,17 +63,7 @@ class Crap4jPluginFunctionalTest {
     @ParameterizedTest
     @MethodSource("supportedGradleVersions")
     void coveringBaselineLetsCrapCheckPass(String gradleVersion) throws IOException {
-        Files.writeString(projectDirectory.resolve("build.gradle"), """
-                plugins {
-                    id 'com.architester.crap4j'
-                }
-
-                crap4j {
-                    jacocoXml.set(layout.projectDirectory.file('jacoco.xml'))
-                    threshold.set(1.0d)
-                    complexityCap.set(1)
-                }
-                """);
+        writeAggregatorBuild(1.0d, 1);
 
         run(gradleVersion, "crapBaseline");
         BuildResult result = run(gradleVersion, "crapCheck");
@@ -97,17 +77,7 @@ class Crap4jPluginFunctionalTest {
     @ParameterizedTest
     @MethodSource("supportedGradleVersions")
     void crapReportIsAlwaysAdvisory(String gradleVersion) throws IOException {
-        Files.writeString(projectDirectory.resolve("build.gradle"), """
-                plugins {
-                    id 'com.architester.crap4j'
-                }
-
-                crap4j {
-                    jacocoXml.set(layout.projectDirectory.file('jacoco.xml'))
-                    threshold.set(1.0d)
-                    complexityCap.set(1)
-                }
-                """);
+        writeAggregatorBuild(1.0d, 1);
 
         BuildResult result = run(gradleVersion, "crapReport");
 
@@ -153,17 +123,7 @@ class Crap4jPluginFunctionalTest {
     @ParameterizedTest
     @MethodSource("supportedGradleVersions")
     void crapBaselineUsesTheConventionPathAndSortsEntries(String gradleVersion) throws IOException {
-        Files.writeString(projectDirectory.resolve("build.gradle"), """
-                plugins {
-                    id 'com.architester.crap4j'
-                }
-
-                crap4j {
-                    jacocoXml.set(layout.projectDirectory.file('jacoco.xml'))
-                    threshold.set(1.0d)
-                    complexityCap.set(1)
-                }
-                """);
+        writeAggregatorBuild(1.0d, 1);
 
         run(gradleVersion, "crapBaseline");
 
@@ -191,21 +151,29 @@ class Crap4jPluginFunctionalTest {
 
                 crap4j {
                     jacocoXml.set(layout.projectDirectory.file('jacoco.xml'))
-                    baseline.set(layout.projectDirectory.file('missing-baseline.json'))
+                    baseline.set(layout.projectDirectory.file('crap4j-baseline.json'))
                 }
                 """);
 
         BuildResult result = runAndFail(gradleVersion, "crapReport");
 
-        assertThat(result.getOutput()).contains("Baseline does not exist:", "missing-baseline.json");
+        assertThat(result.getOutput()).contains("crap4j-baseline.json", "doesn't exist");
     }
 
     @ParameterizedTest
     @MethodSource("supportedGradleVersions")
     void javaProjectsUseJacocoTestReportByConvention(String gradleVersion) throws IOException {
-        writeJavaBuild(false);
-        Path jacocoOutput = projectDirectory.resolve(
-                "build/reports/jacoco/test/jacocoTestReport.xml");
+        Files.writeString(projectDirectory.resolve("build.gradle"), """
+                plugins {
+                    id 'java'
+                    id 'com.architester.crap4j'
+                }
+
+                jacocoTestReport {
+                    reports.xml.outputLocation = layout.buildDirectory.file('custom/jacoco.xml')
+                }
+                """);
+        Path jacocoOutput = projectDirectory.resolve("build/custom/jacoco.xml");
         Files.createDirectories(jacocoOutput.getParent());
         Files.copy(projectDirectory.resolve("jacoco.xml"), jacocoOutput);
 
@@ -213,6 +181,25 @@ class Crap4jPluginFunctionalTest {
 
         assertThat(result.task(":jacocoTestReport")).isNotNull();
         assertThat(result.task(":crapReport").getOutcome()).isEqualTo(TaskOutcome.SUCCESS);
+    }
+
+    @ParameterizedTest
+    @MethodSource("supportedGradleVersions")
+    void javaProjectsCannotDisableJacocoXml(String gradleVersion) throws IOException {
+        Files.writeString(projectDirectory.resolve("build.gradle"), """
+                plugins {
+                    id 'java'
+                    id 'com.architester.crap4j'
+                }
+
+                jacocoTestReport {
+                    reports.xml.required = false
+                }
+                """);
+
+        BuildResult result = runAndFail(gradleVersion, "tasks");
+
+        assertThat(result.getOutput()).contains("required", "cannot be changed");
     }
 
     @ParameterizedTest

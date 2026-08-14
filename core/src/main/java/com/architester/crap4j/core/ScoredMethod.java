@@ -14,7 +14,7 @@ public record ScoredMethod(
         int complexity,
         double coverage,
         CoverageKind coverageKind,
-        double crap) {
+        double crapScore) {
     public ScoredMethod {
         Objects.requireNonNull(className, "className");
         Objects.requireNonNull(methodName, "methodName");

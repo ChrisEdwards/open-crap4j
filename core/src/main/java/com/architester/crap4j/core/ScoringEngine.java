@@ -8,7 +8,7 @@ import java.util.Map;
 /** Turns a folded JaCoCo report into scored methods. */
 public final class ScoringEngine {
     private static final Comparator<ScoredMethod> REPORT_ORDER =
-            Comparator.comparingDouble(ScoredMethod::crap)
+            Comparator.comparingDouble(ScoredMethod::crapScore)
                     .reversed()
                     .thenComparing(ScoredMethod::className)
                     .thenComparing(ScoredMethod::methodName)
@@ -48,7 +48,7 @@ public final class ScoringEngine {
                 ? 0.0
                 : (double) coverageCounter.covered() / total(coverageCounter);
         double uncovered = 1.0 - coverage;
-        double crap = (double) complexity * complexity * uncovered * uncovered * uncovered
+        double crapScore = (double) complexity * complexity * uncovered * uncovered * uncovered
                 + complexity;
         return new ScoredMethod(
                 jacocoClass.name(),
@@ -59,7 +59,7 @@ public final class ScoringEngine {
                 complexity,
                 coverage,
                 coverageKind,
-                crap);
+                crapScore);
     }
 
     private static Counter requiredCounter(

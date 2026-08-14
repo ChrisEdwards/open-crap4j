@@ -8,8 +8,8 @@ public final class ThresholdWarnings {
     private ThresholdWarnings() {}
 
     public static List<ThresholdWarning> compute(double threshold, int complexityCap) {
-        long worstScore = (long) complexityCap * complexityCap + complexityCap;
-        if (threshold >= worstScore) {
+        long worstCrapScore = (long) complexityCap * complexityCap + complexityCap;
+        if (threshold >= worstCrapScore) {
             String message = String.format(
                     Locale.ROOT,
                     """
@@ -20,7 +20,7 @@ public final class ThresholdWarnings {
                     threshold,
                     complexityCap,
                     complexityCap,
-                    worstScore,
+                    worstCrapScore,
                     (double) complexityCap);
             return List.of(new ThresholdWarning(ThresholdWarning.Kind.UNREACHABLE_GATE, message));
         }

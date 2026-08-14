@@ -27,8 +27,8 @@ class ScoringEngineTest {
             assertThat(scored.complexity()).isEqualTo(15);
             assertThat(scored.coverage()).isEqualTo(0.75);
             assertThat(scored.coverageKind()).isEqualTo(CoverageKind.BRANCH);
-            assertThat(scored.crap()).isEqualTo(18.515625);
-            assertThat(BigDecimal.valueOf(scored.crap()).setScale(2, RoundingMode.HALF_UP))
+            assertThat(scored.crapScore()).isEqualTo(18.515625);
+            assertThat(BigDecimal.valueOf(scored.crapScore()).setScale(2, RoundingMode.HALF_UP))
                     .isEqualByComparingTo("18.52");
         });
     }
@@ -60,7 +60,10 @@ class ScoringEngineTest {
                 Exclusions.none());
 
         assertThat(result.methods())
-                .extracting(ScoredMethod::methodName, ScoredMethod::crap, ScoredMethod::coverageKind)
+                .extracting(
+                        ScoredMethod::methodName,
+                        ScoredMethod::crapScore,
+                        ScoredMethod::coverageKind)
                 .containsExactly(
                         org.assertj.core.groups.Tuple.tuple(
                                 "halfCovered", 38.5, CoverageKind.BRANCH),

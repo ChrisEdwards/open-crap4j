@@ -3,7 +3,6 @@ package com.architester.crap4j.core;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -36,6 +35,7 @@ public final class BaselineOperations {
             Baseline baseline,
             ScoringResult scoring,
             GateConfig config,
+            String toolVersion,
             String generated) {
         requireWholeRepo(config);
         GateResult result = new BaselineGate().evaluate(scoring, Optional.of(baseline), config);
@@ -43,14 +43,10 @@ public final class BaselineOperations {
             return baseline;
         }
 
-        Map<MethodKey, ScoredMethod> current = new HashMap<>();
-        for (ScoredMethod method : scoring.methods()) {
-            current.put(MethodKey.of(method), method);
-        }
-        Map<MethodKey, SlackReason> slack = new HashMap<>();
-        for (SlackBaselineEntry entry : result.slackEntries()) {
-            slack.put(entry.key(), entry.reason());
-        }
+        Map<MethodKey, ScoredMethod> current = scoring.methodsByKey();
+        Map<MethodKey, SlackReason> slack = result.slackEntries().stream()
+                .collect(java.util.stream.Collectors.toUnmodifiableMap(
+                        SlackBaselineEntry::key, SlackBaselineEntry::reason));
 
         List<BaselineEntry> tightened = new ArrayList<>();
         for (BaselineEntry entry : baseline.entries()) {
@@ -71,7 +67,7 @@ public final class BaselineOperations {
         }
         return new Baseline(
                 baseline.formatVersion(),
-                baseline.toolVersion(),
+                toolVersion,
                 generated,
                 baseline.coverageSelection(),
                 baseline.threshold(),

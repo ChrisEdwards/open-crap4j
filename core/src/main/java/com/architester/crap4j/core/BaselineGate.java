@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-/** Applies current limits and stored baseline allowances to scored methods. */
+/** Applies the current CRAP threshold, complexity cap, and stored baseline allowances. */
 public final class BaselineGate {
     public static final int FORMAT_VERSION = 1;
     public static final double EPSILON = 0.05;
@@ -23,7 +23,7 @@ public final class BaselineGate {
                 .toList();
         List<SlackBaselineEntry> slack = config.changedFileMode() || baseline.isEmpty()
                 ? List.of()
-                : detectSlack(baseline.orElseThrow(), scoring.methods(), config);
+                : detectSlack(baseline.orElseThrow(), scoring, config);
         return new GateResult(
                 methods,
                 scoring.excluded(),
@@ -73,7 +73,7 @@ public final class BaselineGate {
             return new MethodAssessment(
                     method,
                     MethodStatus.VIOLATION,
-                    limitReasons(crapOver, complexityOver),
+                    thresholdAndCapReasons(crapOver, complexityOver),
                     Optional.empty());
         }
 
@@ -90,11 +90,12 @@ public final class BaselineGate {
         return new MethodAssessment(
                 method,
                 MethodStatus.BASELINED,
-                limitReasons(crapOver, complexityOver),
+                thresholdAndCapReasons(crapOver, complexityOver),
                 stored);
     }
 
-    private static List<GateReason> limitReasons(boolean crapOver, boolean complexityOver) {
+    private static List<GateReason> thresholdAndCapReasons(
+            boolean crapOver, boolean complexityOver) {
         List<GateReason> reasons = new ArrayList<>();
         if (crapOver) {
             reasons.add(GateReason.CRAP_OVER_THRESHOLD);
@@ -106,11 +107,8 @@ public final class BaselineGate {
     }
 
     private static List<SlackBaselineEntry> detectSlack(
-            Baseline baseline, List<ScoredMethod> methods, GateConfig config) {
-        Map<MethodKey, ScoredMethod> current = new HashMap<>();
-        for (ScoredMethod method : methods) {
-            current.put(MethodKey.of(method), method);
-        }
+            Baseline baseline, ScoringResult scoring, GateConfig config) {
+        Map<MethodKey, ScoredMethod> current = scoring.methodsByKey();
         List<SlackBaselineEntry> slack = new ArrayList<>();
         for (BaselineEntry entry : baseline.entries()) {
             ScoredMethod method = current.get(entry.key());

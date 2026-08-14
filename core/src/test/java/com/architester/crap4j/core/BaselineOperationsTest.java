@@ -42,9 +42,11 @@ class BaselineOperationsTest {
                 original,
                 new ScoringResult(List.of(improved, passing, newDebt), 0),
                 CONFIG,
+                "0.2.0",
                 NOW);
 
         assertThat(tightened.generated()).isEqualTo(NOW);
+        assertThat(tightened.toolVersion()).isEqualTo("0.2.0");
         assertThat(tightened.entries())
                 .containsExactly(new BaselineEntry(MethodKey.of(improved), 20.0, 16));
     }
@@ -55,7 +57,7 @@ class BaselineOperationsTest {
         Baseline exactBoundary = baseline(entry("run", 20.05, 16));
 
         Baseline unchanged = new BaselineOperations().tighten(
-                exactBoundary, new ScoringResult(List.of(current), 0), CONFIG, NOW);
+                exactBoundary, new ScoringResult(List.of(current), 0), CONFIG, "0.2.0", NOW);
 
         assertThat(unchanged).isSameAs(exactBoundary);
         assertThat(unchanged.generated()).isEqualTo(exactBoundary.generated());
@@ -66,6 +68,7 @@ class BaselineOperationsTest {
                                 pastBoundary,
                                 new ScoringResult(List.of(current), 0),
                                 CONFIG,
+                                "0.2.0",
                                 NOW)
                         .entries())
                 .containsExactly(entry("run", 20.0, 16));
@@ -79,7 +82,7 @@ class BaselineOperationsTest {
 
         GateResult beforeTighten = gate(method("run", 90.0, 16), original);
         Baseline tightened = new BaselineOperations().tighten(
-                original, new ScoringResult(List.of(improved), 0), CONFIG, NOW);
+                original, new ScoringResult(List.of(improved), 0), CONFIG, "0.2.0", NOW);
         GateResult afterTighten = gate(method("run", 90.0, 16), tightened);
 
         assertThat(originalDebt.crapScore()).isEqualTo(92.0);
@@ -101,7 +104,12 @@ class BaselineOperationsTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("whole-repo");
         assertThatThrownBy(() -> new BaselineOperations()
-                        .tighten(baseline(entry("run", 20.0, 16)), scoring, changedFiles, NOW))
+                        .tighten(
+                                baseline(entry("run", 20.0, 16)),
+                                scoring,
+                                changedFiles,
+                                "0.2.0",
+                                NOW))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("whole-repo");
     }

@@ -13,7 +13,15 @@ dependencies {
 
 val functionalTest = sourceSets.create("functionalTest")
 
+functionalTest.resources.srcDir(rootProject.layout.projectDirectory.dir("test-fixtures"))
+
 gradlePlugin {
+    plugins {
+        create("crap4j") {
+            id = "com.architester.crap4j"
+            implementationClass = "com.architester.crap4j.gradle.Crap4jPlugin"
+        }
+    }
     testSourceSets(functionalTest)
 }
 

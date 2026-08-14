@@ -162,6 +162,27 @@ class Crap4jPluginFunctionalTest {
 
     @ParameterizedTest
     @MethodSource("supportedGradleVersions")
+    void baselineExtensionExposesTheConventionPath(String gradleVersion) throws IOException {
+        Files.writeString(projectDirectory.resolve("build.gradle"), """
+                plugins {
+                    id 'com.architester.crap4j'
+                }
+
+                tasks.register('printBaselineConvention') {
+                    doLast {
+                        println crap4j.baseline.get().asFile
+                    }
+                }
+                """);
+
+        BuildResult result = run(gradleVersion, "printBaselineConvention");
+
+        assertThat(result.getOutput()).contains(
+                projectDirectory.resolve("crap4j-baseline.json").toString());
+    }
+
+    @ParameterizedTest
+    @MethodSource("supportedGradleVersions")
     void javaProjectsUseJacocoTestReportByConvention(String gradleVersion) throws IOException {
         Files.writeString(projectDirectory.resolve("build.gradle"), """
                 plugins {

@@ -17,6 +17,10 @@ public final class Crap4jPlugin implements Plugin<Project> {
         Crap4jExtension extension = project.getExtensions().create(
                 "crap4j", Crap4jExtension.class, project.getObjects());
         extension.conventions();
+        RegularFile conventionalBaseline = project.getLayout().getProjectDirectory()
+                .file("crap4j-baseline.json");
+        extension.getBaseline().convention(
+                new ConventionalBaselineFile(conventionalBaseline.getAsFile()));
 
         TaskProvider<CrapCheck> check = registerAnalysis(
                 project, "crapCheck", CrapCheck.class, extension);
@@ -58,7 +62,8 @@ public final class Crap4jPlugin implements Plugin<Project> {
             applyTaskConventions(task, extension);
             task.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
             task.setDescription("Analyzes JaCoCo coverage with the CRAP metric.");
-            task.getBaseline().convention(extension.getBaseline());
+            task.getBaseline().convention(extension.getBaseline().filter(
+                    file -> !(file instanceof ConventionalBaselineFile)));
             task.getConventionalBaseline().convention(
                     project.getLayout().getProjectDirectory().file("crap4j-baseline.json"));
             task.getAdvisory().convention(extension.getAdvisory());

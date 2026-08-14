@@ -111,20 +111,21 @@ public abstract class AbstractCrapAnalysisTask extends AbstractCrapTask {
     }
 
     private Optional<Baseline> readBaseline() throws IOException {
-        RegularFile configured = getBaseline().getOrNull();
-        Path path = configured == null
-                ? getConventionalBaseline().get().getAsFile().toPath()
-                : configured.getAsFile().toPath();
+        Path path = effectiveBaselineFile().toPath();
         return Files.isRegularFile(path)
                 ? Optional.of(BaselineJson.read(path))
                 : Optional.empty();
     }
 
     private String displayBaseline() {
+        return effectiveBaselineFile().getName();
+    }
+
+    private File effectiveBaselineFile() {
         RegularFile configured = getBaseline().getOrNull();
-        return (configured == null
+        return configured == null
                 ? getConventionalBaseline().get().getAsFile()
-                : configured.getAsFile()).getName();
+                : configured.getAsFile();
     }
 
     private static void write(RegularFileProperty output, String contents) throws IOException {

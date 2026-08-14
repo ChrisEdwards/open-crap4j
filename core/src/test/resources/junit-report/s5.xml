@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="crap4j.crapCheck" tests="1" failures="1" errors="0" skipped="0" time="0">
+    <testcase classname="example.Debt" name="work()" time="0">
+      <failure type="crap-regressed" message="CRAP 30.00, cc 5, 0.0% branch, baselined at crap 20.00 cc 4, regressed: crap +10.00, complexity +1"/>
+    </testcase>
+  </testsuite>
+</testsuites>

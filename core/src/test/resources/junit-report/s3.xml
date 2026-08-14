@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="crap4j.crapCheck" tests="4" failures="0" errors="0" skipped="3" time="0">
+    <testcase classname="example.Debt" name="work()" time="0">
+      <skipped message="baselined debt, allowance crap 20.00 cc 4, passing"/>
+    </testcase>
+    <testcase classname="example.Improved" name="better()" time="0"/>
+    <testcase classname="example.Debt" name="work() [slack]" time="0">
+      <skipped message="slack: excess-allowance, allowance 20.00, scores 20.00 today, run crapBaselineTighten"/>
+    </testcase>
+    <testcase classname="example.Improved" name="better() [slack]" time="0">
+      <skipped message="slack: under-limits, now passes on its own, run crapBaselineTighten"/>
+    </testcase>
+  </testsuite>
+</testsuites>

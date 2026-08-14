@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="crap4j.crapCheck" tests="1" failures="1" errors="0" skipped="0" time="0">
+    <testcase classname="example.Debt" name="work()" time="0">
+      <failure type="crap-over-threshold" message="CRAP 20.00, cc 4, 0.0% branch, over the CRAP threshold 15.0"/>
+    </testcase>
+  </testsuite>
+</testsuites>

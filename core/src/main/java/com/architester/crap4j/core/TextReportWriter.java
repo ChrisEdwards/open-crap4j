@@ -1,6 +1,5 @@
 package com.architester.crap4j.core;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -93,12 +92,8 @@ public final class TextReportWriter {
     }
 
     private static List<MethodAssessment> methods(GateResult result, MethodStatus status) {
-        return result.methods().stream()
+        return ReportOrder.methods(result.methods()).stream()
                 .filter(method -> method.status() == status)
-                .sorted(Comparator.comparingDouble(
-                                (MethodAssessment method) -> method.method().crapScore())
-                        .reversed()
-                        .thenComparing(method -> MethodKey.of(method.method())))
                 .toList();
     }
 
@@ -144,9 +139,7 @@ public final class TextReportWriter {
                         ? "tight baseline required, these fail the build"
                         : "more allowance than needed, informational")
                 .append("\n\n");
-        List<SlackBaselineEntry> entries = result.slackEntries().stream()
-                .sorted(Comparator.comparing(SlackBaselineEntry::key))
-                .toList();
+        List<SlackBaselineEntry> entries = ReportOrder.slack(result.slackEntries());
         for (SlackBaselineEntry entry : entries) {
             report.append(String.format(Locale.ROOT, "  %-18s%-48s   %s%n",
                     entry.reason().serializedName(), displayName(entry.key()),
@@ -156,19 +149,7 @@ public final class TextReportWriter {
     }
 
     private static String slackDescription(SlackBaselineEntry entry, GateResult result) {
-        Optional<MethodAssessment> current = result.methods().stream()
-                .filter(method -> MethodKey.of(method.method()).equals(entry.key()))
-                .findFirst();
-        return switch (entry.reason()) {
-            case METHOD_GONE -> "method no longer exists";
-            case UNDER_LIMITS -> "now passes on its own";
-            case EXCESS_ALLOWANCE -> {
-                MethodAssessment assessment = current.orElseThrow();
-                BaselineEntry allowance = assessment.allowance().orElseThrow();
-                yield String.format(Locale.ROOT, "allowance %.2f, scores %.2f today",
-                        allowance.crapScore(), assessment.method().crapScore());
-            }
-        };
+        return ReportMessages.slackDetail(entry, result);
     }
 
     private static void appendPassing(StringBuilder report, GateResult result, int limit) {
@@ -293,24 +274,9 @@ public final class TextReportWriter {
 
     private static void appendRegressionDetail(
             StringBuilder report, MethodAssessment assessment, int complexityCap) {
-        BaselineEntry allowance = assessment.allowance().orElseThrow();
-        ScoredMethod method = assessment.method();
-        StringBuilder detail = new StringBuilder("                              baselined at crap ")
-                .append(String.format(Locale.ROOT, "%.2f", allowance.crapScore()))
-                .append(" cc ").append(allowance.complexity()).append(", regressed:");
-        if (assessment.reasons().contains(GateReason.CRAP_REGRESSED)) {
-            detail.append(String.format(Locale.ROOT, " crap +%.2f", method.crapScore() - allowance.crapScore()));
-        }
-        if (assessment.reasons().contains(GateReason.COMPLEXITY_REGRESSED)) {
-            if (assessment.reasons().contains(GateReason.CRAP_REGRESSED)) {
-                detail.append(',');
-            }
-            detail.append(" complexity +").append(method.complexity() - allowance.complexity());
-        }
-        if (method.complexity() > complexityCap) {
-            detail.append(", over the cap");
-        }
-        report.append(detail).append('\n');
+        report.append("                              ")
+                .append(ReportMessages.regressionDetail(assessment, complexityCap))
+                .append('\n');
     }
 
     private static String plural(int count, String singular) {

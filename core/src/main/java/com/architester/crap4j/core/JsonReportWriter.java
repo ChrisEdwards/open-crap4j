@@ -1,6 +1,5 @@
 package com.architester.crap4j.core;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -21,15 +20,8 @@ public final class JsonReportWriter {
         Objects.requireNonNull(toolVersion, "toolVersion");
         Objects.requireNonNull(baselineFile, "baselineFile");
 
-        List<MethodAssessment> methods = result.methods().stream()
-                .sorted(Comparator.comparingDouble(
-                                (MethodAssessment assessment) -> assessment.method().crapScore())
-                        .reversed()
-                        .thenComparing(assessment -> MethodKey.of(assessment.method())))
-                .toList();
-        List<SlackBaselineEntry> slack = result.slackEntries().stream()
-                .sorted(Comparator.comparing(SlackBaselineEntry::key))
-                .toList();
+        List<MethodAssessment> methods = ReportOrder.methods(result.methods());
+        List<SlackBaselineEntry> slack = ReportOrder.slack(result.slackEntries());
 
         StringBuilder json = new StringBuilder("{\n")
                 .append("  \"formatVersion\": ").append(FORMAT_VERSION).append(",\n")

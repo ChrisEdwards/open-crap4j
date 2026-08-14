@@ -34,6 +34,7 @@ class Crap4jCliTest {
         assertThat(noArgs.stdout()).startsWith("Usage: crap4j <verb>");
         assertThat(help.stdout()).contains("check", "report", "baseline", "tighten");
         assertThat(verbHelp.stdout()).startsWith("Usage: crap4j check --report <path>");
+        assertThat(verbHelp.stdout()).contains("--report-name <name>");
         assertThat(version.stdout()).startsWith("crap4j ");
     }
 
@@ -41,7 +42,19 @@ class Crap4jCliTest {
     void checkPassesWithExitZero() {
         Result clean = run("", "check", "--report", report.toString());
         assertThat(clean.exitCode()).isZero();
-        assertThat(clean.stdout()).startsWith("open-crap4j");
+        assertThat(clean.stdout()).startsWith(
+                "open-crap4j - Report for module: JaCoCo Coverage Report\n\nthreshold");
+    }
+
+    @Test
+    void reportNameOverridesTheJacocoName() {
+        Result clean = run("", "check", "--report", report.toString(),
+                "--report-name", "open-crap4j:core");
+
+        assertThat(clean.exitCode()).isZero();
+        assertThat(clean.stdout()).startsWith(
+                "open-crap4j - Report for module: open-crap4j:core\n\nthreshold");
+        assertThat(clean.stdout()).doesNotContain("JaCoCo Coverage Report");
     }
 
     @Test

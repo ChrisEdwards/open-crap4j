@@ -9,9 +9,9 @@ val buildLogicTest = tasks.register<Exec>("buildLogicTest") {
     group = LifecycleBasePlugin.VERIFICATION_GROUP
     workingDir = rootDir
     if (System.getProperty("os.name").lowercase().contains("windows")) {
-        commandLine("cmd", "/c", "gradlew.bat", "-p", "buildSrc", "test", "--no-daemon")
+        commandLine("cmd", "/c", "gradlew.bat", "-p", "buildSrc", "test")
     } else {
-        commandLine("./gradlew", "-p", "buildSrc", "test", "--no-daemon")
+        commandLine("./gradlew", "-p", "buildSrc", "test")
     }
 }
 

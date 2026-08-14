@@ -32,6 +32,9 @@ import org.gradle.api.tasks.PathSensitivity;
 
 /** Thin Gradle wrapper around core gating and report writers. */
 public abstract class AbstractCrapAnalysisTask extends AbstractCrapTask {
+    @Input
+    public abstract Property<String> getReportName();
+
     @InputFile
     @org.gradle.api.tasks.Optional
     @PathSensitive(PathSensitivity.RELATIVE)
@@ -88,11 +91,12 @@ public abstract class AbstractCrapAnalysisTask extends AbstractCrapTask {
             boolean advisory = permanentlyAdvisory || getAdvisory().get();
             Optional<String> baselineDisplay = baseline.map(ignored -> displayBaseline());
             TextReportOutput text = new TextReportWriter().render(
-                    gate, config, advisory, baselineDisplay, ReportProducer.GRADLE, OptionalInt.empty());
+                    gate, config, advisory, baselineDisplay, ReportProducer.GRADLE, OptionalInt.empty(),
+                    Optional.of(getReportName().get()));
             if (!text.diagnostics().isBlank()) {
                 getLogger().warn(text.diagnostics().stripTrailing());
             }
-            getLogger().lifecycle(text.standardOutput().stripTrailing());
+            getLogger().lifecycle("\n" + text.standardOutput().stripTrailing() + "\n");
 
             if (getJsonEnabled().get()) {
                 write(getJsonReport(), new JsonReportWriter().write(

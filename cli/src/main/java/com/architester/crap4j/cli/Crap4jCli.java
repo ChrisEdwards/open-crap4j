@@ -132,7 +132,8 @@ public final class Crap4jCli {
         boolean advisory = options.verb().inherentlyAdvisory() || options.advisory();
         Optional<String> baselineDisplay = stored.map(ignored -> baseline.displayName());
         TextReportOutput text = new TextReportWriter().render(
-                gate, config, advisory, baselineDisplay, ReportProducer.CLI, options.showPassing());
+                gate, config, advisory, baselineDisplay, ReportProducer.CLI, options.showPassing(),
+                Optional.of(options.reportName().orElse(report.name())));
         standardError.print(text.diagnostics());
 
         String json = new JsonReportWriter().write(
@@ -250,6 +251,7 @@ public final class Crap4jCli {
         }
         if (verb.acceptsReportOutputs()) {
             help.append("  --show-passing <N>\n")
+                    .append("  --report-name <name>\n")
                     .append("  --json-report <path|->\n")
                     .append("  --junit-report <path>\n");
         }

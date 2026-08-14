@@ -21,6 +21,7 @@ record CliArguments(
         boolean requireTightBaseline,
         boolean advisory,
         OptionalInt showPassing,
+        Optional<String> reportName,
         Optional<String> jsonReport,
         Optional<String> junitReport) {
     enum Verb {
@@ -114,6 +115,7 @@ record CliArguments(
         boolean tight = false;
         boolean advisory = false;
         OptionalInt showPassing = OptionalInt.empty();
+        String reportName = null;
         String jsonReport = null;
         String junitReport = null;
         Set<String> seen = new HashSet<>();
@@ -157,13 +159,8 @@ record CliArguments(
                     case "--use-default-exclusions" -> defaults = parseBoolean(flag, value.text());
                     case "--changed-files" -> changedFiles = value.text();
                     case "--baseline" -> baseline = value.text();
-                    case "--show-passing" -> {
-                        int count = Integer.parseInt(value.text());
-                        if (count < 0) {
-                            throw new UsageException("--show-passing must be non-negative");
-                        }
-                        showPassing = OptionalInt.of(count);
-                    }
+                    case "--show-passing" -> showPassing = showPassing(value.text());
+                    case "--report-name" -> reportName = value.text();
                     case "--json-report" -> jsonReport = value.text();
                     case "--junit-report" -> junitReport = value.text();
                     default -> throw new UsageException("Unknown flag: " + flag);
@@ -176,11 +173,13 @@ record CliArguments(
         if (report == null) {
             throw new UsageException("--report is required");
         }
-        validateVerbFlags(verb, changedFiles, tight, advisory, showPassing, jsonReport, junitReport);
+        validateVerbFlags(verb, changedFiles, tight, advisory, showPassing,
+                reportName, jsonReport, junitReport);
         return new CliArguments(
                 verb, report, threshold, complexityCap, List.copyOf(exclusions),
                 List.copyOf(classExclusions), defaults, Optional.ofNullable(changedFiles),
                 Optional.ofNullable(baseline), tight, advisory, showPassing,
+                Optional.ofNullable(reportName),
                 Optional.ofNullable(jsonReport), Optional.ofNullable(junitReport));
     }
 
@@ -190,6 +189,7 @@ record CliArguments(
             boolean tight,
             boolean advisory,
             OptionalInt showPassing,
+            String reportName,
             String jsonReport,
             String junitReport) {
         if (!verb.acceptsChangedFiles() && changedFiles != null) {
@@ -204,8 +204,25 @@ record CliArguments(
         if (!verb.acceptsRequireTightBaseline() && tight) {
             throw new UsageException("--require-tight-baseline is not allowed on " + verb.commandName());
         }
-        if (!verb.acceptsReportOutputs()
-                && (showPassing.isPresent() || jsonReport != null || junitReport != null)) {
+        validateReportOutputFlags(verb, showPassing, reportName, jsonReport, junitReport);
+    }
+
+    private static OptionalInt showPassing(String value) {
+        int count = Integer.parseInt(value);
+        if (count < 0) {
+            throw new UsageException("--show-passing must be non-negative");
+        }
+        return OptionalInt.of(count);
+    }
+
+    private static void validateReportOutputFlags(
+            Verb verb,
+            OptionalInt showPassing,
+            String reportName,
+            String jsonReport,
+            String junitReport) {
+        if (!verb.acceptsReportOutputs() && (showPassing.isPresent()
+                || reportName != null || jsonReport != null || junitReport != null)) {
             throw new UsageException("Report output flags are not allowed on " + verb.commandName());
         }
     }

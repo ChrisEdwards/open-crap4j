@@ -138,6 +138,7 @@ Exit codes. 0 = pass (or advisory), 1 = usage/input error, 2 = violations found.
 | `--require-tight-baseline` | check, report | Fail on slack baseline entries |
 | `--advisory` | check | Report violations but exit 0 |
 | `--show-passing <N>` | check, report | Show the N highest-scoring passing methods |
+| `--report-name <name>` | check, report | Override the JaCoCo report name shown in the text heading |
 | `--json-report <path\|->` | check, report | Write JSON report to a file or stdout (`-`) |
 | `--junit-report <path>` | check, report | Write JUnit XML sidecar for CI test-report UIs |
 
@@ -183,6 +184,8 @@ crap4j {
 | `crapBaselineTighten` | verification | Shrink the baseline |
 
 All tasks depend on `jacocoTestReport` when the `java` plugin is applied.
+Text report headings use the qualified Gradle project identity, such as
+`open-crap4j:core`, so adjacent multi-project output remains unambiguous.
 
 ## CI recipes
 

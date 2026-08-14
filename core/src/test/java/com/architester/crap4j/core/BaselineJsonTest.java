@@ -1,6 +1,7 @@
 package com.architester.crap4j.core;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -50,5 +51,80 @@ class BaselineJsonTest {
                 }
                 """);
         assertThat(BaselineJson.write(BaselineJson.read(json))).isEqualTo(json);
+    }
+
+    @Test
+    void serializesEmptyEntriesAndRoundTripsByteIdentically() {
+        Baseline baseline = new Baseline(
+                1,
+                "0.1.0",
+                "2026-08-12T00:00:00Z",
+                CoverageSelection.BRANCH_PREFERRED,
+                15.0,
+                15,
+                List.of());
+
+        String json = BaselineJson.write(baseline);
+
+        assertThat(json).isEqualTo("""
+                {
+                  "formatVersion": 1,
+                  "toolVersion": "0.1.0",
+                  "generated": "2026-08-12T00:00:00Z",
+                  "coverageSelection": "branch-preferred",
+                  "threshold": 15.0,
+                  "complexityCap": 15,
+                  "entries": [  ]
+                }
+                """);
+        assertThat(BaselineJson.write(BaselineJson.read(json))).isEqualTo(json);
+    }
+
+    @Test
+    void rejectsMalformedJson() {
+        assertThatThrownBy(() -> BaselineJson.read("{"))
+                .isInstanceOf(BaselineParseException.class)
+                .hasMessageContaining("Expected an object key");
+    }
+
+    @Test
+    void rejectsMissingRequiredFields() {
+        String json = validEmptyBaselineJson().replace("  \"toolVersion\": \"0.1.0\",\n", "");
+
+        assertThatThrownBy(() -> BaselineJson.read(json))
+                .isInstanceOf(BaselineParseException.class)
+                .hasMessage("Missing required field: toolVersion");
+    }
+
+    @Test
+    void rejectsFieldsWithWrongTypes() {
+        String json = validEmptyBaselineJson().replace("\"complexityCap\": 15", "\"complexityCap\": \"15\"");
+
+        assertThatThrownBy(() -> BaselineJson.read(json))
+                .isInstanceOf(BaselineParseException.class)
+                .hasMessage("complexityCap must be a number");
+    }
+
+    @Test
+    void rejectsPlusPrefixedNumbers() {
+        String json = validEmptyBaselineJson().replace("\"threshold\": 15.0", "\"threshold\": +15.0");
+
+        assertThatThrownBy(() -> BaselineJson.read(json))
+                .isInstanceOf(BaselineParseException.class)
+                .hasMessageContaining("Expected a number");
+    }
+
+    private static String validEmptyBaselineJson() {
+        return """
+                {
+                  "formatVersion": 1,
+                  "toolVersion": "0.1.0",
+                  "generated": "2026-08-12T00:00:00Z",
+                  "coverageSelection": "branch-preferred",
+                  "threshold": 15.0,
+                  "complexityCap": 15,
+                  "entries": []
+                }
+                """;
     }
 }

@@ -276,7 +276,7 @@ public final class BaselineJson {
         private Number number() {
             int start = position;
             while (position < input.length()
-                    && "-+0123456789.eE".indexOf(input.charAt(position)) >= 0) {
+                    && "-0123456789.eE".indexOf(input.charAt(position)) >= 0) {
                 position++;
             }
             if (start == position) {

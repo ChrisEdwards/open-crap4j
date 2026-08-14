@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /** Creates a new baseline or safely tightens an existing one. */
 public final class BaselineOperations {
@@ -45,7 +46,7 @@ public final class BaselineOperations {
 
         Map<MethodKey, ScoredMethod> current = scoring.methodsByKey();
         Map<MethodKey, SlackReason> slack = result.slackEntries().stream()
-                .collect(java.util.stream.Collectors.toUnmodifiableMap(
+                .collect(Collectors.toUnmodifiableMap(
                         SlackBaselineEntry::key, SlackBaselineEntry::reason));
 
         List<BaselineEntry> tightened = new ArrayList<>();

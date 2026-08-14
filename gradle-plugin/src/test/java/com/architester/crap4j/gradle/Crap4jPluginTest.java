@@ -24,4 +24,18 @@ class Crap4jPluginTest {
                 .anyMatch(task -> task.getName().equals("crapCheck"));
         assertThat(crapCheckAttached).isFalse();
     }
+
+    @Test
+    void reportNameUsesTheQualifiedGradleProjectIdentity() {
+        Project root = ProjectBuilder.builder().withName("open-crap4j").build();
+        Project module = ProjectBuilder.builder().withName("core").withParent(root).build();
+
+        root.getPluginManager().apply(Crap4jPlugin.class);
+        module.getPluginManager().apply(Crap4jPlugin.class);
+
+        assertThat(((CrapReport) root.getTasks().getByName("crapReport"))
+                .getReportName().get()).isEqualTo("open-crap4j");
+        assertThat(((CrapReport) module.getTasks().getByName("crapReport"))
+                .getReportName().get()).isEqualTo("open-crap4j:core");
+    }
 }

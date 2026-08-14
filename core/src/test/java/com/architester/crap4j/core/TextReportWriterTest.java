@@ -39,6 +39,18 @@ class TextReportWriterTest {
     }
 
     @Test
+    void reportNameIsRenderedAsAHeading() {
+        GateResult result = paddedResult(List.of(), 0, List.of(), false);
+
+        TextReportOutput output = new TextReportWriter().render(
+                result, CONFIG, false, Optional.empty(), ReportProducer.CLI,
+                OptionalInt.empty(), Optional.of("open-crap4j:core"));
+
+        assertThat(output.standardOutput()).startsWith(
+                "open-crap4j - Report for module: open-crap4j:core\nthreshold 15.0");
+    }
+
+    @Test
     void s2BaselinedDebtMatchesTheLockedGolden() throws IOException {
         BaselineEntry recommendation = allowance(
                 "com/example/RecommendationMarkdownRenderer", "registerKnownTags", 38.5, 14);

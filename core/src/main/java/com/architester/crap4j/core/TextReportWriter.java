@@ -29,16 +29,29 @@ public final class TextReportWriter {
             Optional<String> baselineFile,
             ReportProducer producer,
             OptionalInt showPassing) {
+        return render(result, config, advisory, baselineFile, producer, showPassing, Optional.empty());
+    }
+
+    public TextReportOutput render(
+            GateResult result,
+            GateConfig config,
+            boolean advisory,
+            Optional<String> baselineFile,
+            ReportProducer producer,
+            OptionalInt showPassing,
+            Optional<String> reportName) {
         Objects.requireNonNull(result, "result");
         Objects.requireNonNull(config, "config");
         Objects.requireNonNull(baselineFile, "baselineFile");
         Objects.requireNonNull(producer, "producer");
         Objects.requireNonNull(showPassing, "showPassing");
+        Objects.requireNonNull(reportName, "reportName");
         if (showPassing.isPresent() && showPassing.getAsInt() < 0) {
             throw new IllegalArgumentException("showPassing must be non-negative");
         }
 
-        StringBuilder report = new StringBuilder(echo(config, advisory, baselineFile)).append("\n\n");
+        StringBuilder report = new StringBuilder(heading(reportName));
+        report.append(echo(config, advisory, baselineFile, reportName.isEmpty())).append("\n\n");
         StringBuilder diagnostics = new StringBuilder();
         List<ThresholdWarning> warnings =
                 ThresholdWarnings.compute(config.threshold(), config.complexityCap());
@@ -75,9 +88,18 @@ public final class TextReportWriter {
         return new TextReportOutput(report.toString(), diagnostics.toString());
     }
 
+    private static String heading(Optional<String> reportName) {
+        return reportName.filter(name -> !name.isBlank())
+                .map(name -> "open-crap4j - Report for module: " + name.strip() + "\n")
+                .orElse("");
+    }
+
     private static String echo(
-            GateConfig config, boolean advisory, Optional<String> baselineFile) {
-        StringBuilder echo = new StringBuilder("open-crap4j  threshold ")
+            GateConfig config,
+            boolean advisory,
+            Optional<String> baselineFile,
+            boolean includeToolName) {
+        StringBuilder echo = new StringBuilder(includeToolName ? "open-crap4j  threshold " : "threshold ")
                 .append(JsonText.policyDecimal(config.threshold()))
                 .append("  complexity cap ").append(config.complexityCap())
                 .append("  coverage ").append(config.coverageSelection().serializedName())

@@ -60,6 +60,7 @@ public final class Crap4jPlugin implements Plugin<Project> {
             Crap4jExtension extension) {
         return project.getTasks().register(name, type, task -> {
             applyTaskConventions(task, extension);
+            task.getReportName().convention(qualifiedProjectName(project));
             task.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
             task.setDescription("Analyzes JaCoCo coverage with the CRAP metric.");
             task.getBaseline().convention(extension.getBaseline().filter(
@@ -74,6 +75,12 @@ public final class Crap4jPlugin implements Plugin<Project> {
             task.getJunitXmlReport().convention(project.getLayout().getBuildDirectory()
                     .file("reports/crap4j/" + name + "/junit.xml"));
         });
+    }
+
+    private static String qualifiedProjectName(Project project) {
+        return project == project.getRootProject()
+                ? project.getName()
+                : project.getRootProject().getName() + project.getPath();
     }
 
     private static <T extends AbstractCrapTask> TaskProvider<T> registerBaseline(

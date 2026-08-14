@@ -82,6 +82,7 @@ class Crap4jPluginFunctionalTest {
         BuildResult result = run(gradleVersion, "crapReport");
 
         assertThat(result.task(":crapReport").getOutcome()).isEqualTo(TaskOutcome.SUCCESS);
+        assertThat(result.getOutput()).contains("open-crap4j - Report for module: fixture");
         assertThat(projectDirectory.resolve("build/reports/crap4j/crapReport/report.json"))
                 .content().contains("\"status\": \"advisory\"")
                 .contains("\"advisory\": true");

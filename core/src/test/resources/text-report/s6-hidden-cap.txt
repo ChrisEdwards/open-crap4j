@@ -1,0 +1,6 @@
+open-crap4j  threshold 10.0  complexity cap 15  coverage branch-preferred  no baseline
+
+WARNING: threshold 10.0 is below complexity cap 15.
+CRAP >= cc always, so every method over cc 10 fails regardless of coverage.
+The threshold is acting as a hidden complexity cap of 10.
+Suggested pairing: complexity cap 10, or threshold 15.0.

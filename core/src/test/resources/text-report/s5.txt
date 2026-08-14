@@ -1,0 +1,18 @@
+open-crap4j  threshold 15.0  complexity cap 15  coverage branch-preferred  baseline crap4j-baseline.json
+
+Violations (1) — over the limits, not excused, these fail the build
+
+   CRAP   cc  coverage        method
+  22.51   16  70.6% branch    SearchAppVulnerabilitiesTool.doExecute             (SearchAppVulnerabilitiesTool.java:88)
+                              baselined at crap 18.52 cc 15, regressed: crap +3.99, complexity +1, over the cap
+
+Baselined debt (1) — over the limits but excused by the baseline, passing
+
+   CRAP   cc  coverage        method                                              allowance
+  38.50   14  50.0% branch    RecommendationMarkdownRenderer.registerKnownTags    crap 38.50  cc 14
+
+430 methods analyzed, 12 excluded
+1 violation, 1 baselined, 0 slack entries
+
+FAIL: 1 baselined method regressed past its allowance.
+Fix with tests, or re-admit the new debt with crapBaseline (reviewed, it raises the allowance).

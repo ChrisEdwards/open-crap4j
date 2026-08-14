@@ -1,0 +1,13 @@
+open-crap4j  threshold 15.0  complexity cap 15  coverage branch-preferred  baseline crap4j-baseline.json
+
+Baselined debt (2) — over the limits but excused by the baseline, passing
+
+   CRAP   cc  coverage        method                                              allowance
+  38.50   14  50.0% branch    RecommendationMarkdownRenderer.registerKnownTags    crap 38.50  cc 14
+  18.52   15  75.0% branch    SearchAppVulnerabilitiesTool.doExecute              crap 18.52  cc 15
+
+430 methods analyzed, 12 excluded
+0 violations, 2 baselined, 0 slack entries
+
+PASS with 2 baselined methods carrying known debt.
+These fail the build only if they grow past their stored allowance.

@@ -1,0 +1,16 @@
+open-crap4j  threshold 15.0  complexity cap 15  coverage branch-preferred  baseline crap4j-baseline.json  tight baseline required
+
+Baselined debt (1) — over the limits but excused by the baseline, passing
+
+   CRAP   cc  coverage        method                                              allowance
+  16.05   15  83.3% branch    SearchAppVulnerabilitiesTool.doExecute              crap 18.52  cc 15
+
+Slack in the baseline (2) — tight baseline required, these fail the build
+
+  under-limits      RecommendationMarkdownRenderer.registerKnownTags   now passes on its own
+  excess-allowance  SearchAppVulnerabilitiesTool.doExecute             allowance 18.52, scores 16.05 today
+
+430 methods analyzed, 12 excluded
+2 violations (2 slack), 1 baselined, 2 slack entries
+
+FAIL: baseline is not tight, 2 slack entries. Run crapBaselineTighten.

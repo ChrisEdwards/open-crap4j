@@ -1,0 +1,13 @@
+open-crap4j  threshold 15.0  complexity cap 15  coverage branch-preferred  no baseline
+
+Violations (2) — over the limits, not excused, these fail the build
+
+   CRAP   cc  coverage        method
+  38.50   14  50.0% branch    RecommendationMarkdownRenderer.registerKnownTags   (RecommendationMarkdownRenderer.java:41)
+  18.52   15  75.0% branch    SearchAppVulnerabilitiesTool.doExecute             (SearchAppVulnerabilitiesTool.java:88)
+
+430 methods analyzed, 12 excluded
+2 violations, 0 baselined, no baseline
+
+FAIL: 2 methods over the CRAP threshold.
+Fix with tests, or admit them as known debt with crapBaseline.

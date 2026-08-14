@@ -1,0 +1,6 @@
+open-crap4j  threshold 250.0  complexity cap 15  coverage branch-preferred  no baseline
+
+WARNING: threshold 250.0 is unreachable under complexity cap 15.
+The worst score a cc 15 method can reach is 240 (fully uncovered).
+The CRAP gate can never fire, this run is a plain complexity check.
+Suggested pairing: threshold 15.0 (threshold = cap demands full coverage at the cap).

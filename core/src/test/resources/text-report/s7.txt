@@ -1,0 +1,12 @@
+open-crap4j  threshold 15.0  complexity cap 15  coverage branch-preferred  no baseline  ADVISORY
+
+Violations (2) — reported only, advisory mode passes the build
+
+   CRAP   cc  coverage        method
+  38.50   14  50.0% branch    RecommendationMarkdownRenderer.registerKnownTags   (RecommendationMarkdownRenderer.java:41)
+  18.52   15  75.0% branch    SearchAppVulnerabilitiesTool.doExecute             (SearchAppVulnerabilitiesTool.java:88)
+
+430 methods analyzed, 12 excluded
+2 violations, 0 baselined, no baseline
+
+ADVISORY: 2 violations reported, build allowed to pass.

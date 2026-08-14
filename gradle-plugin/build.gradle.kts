@@ -1,3 +1,5 @@
+import org.gradle.testing.jacoco.tasks.JacocoReport
+
 plugins {
     id("crap4j.java-conventions")
     `java-gradle-plugin`
@@ -36,6 +38,11 @@ val functionalTestTask = tasks.register<Test>("functionalTest") {
     testClassesDirs = functionalTest.output.classesDirs
     classpath = functionalTest.runtimeClasspath
     shouldRunAfter(tasks.test)
+}
+
+tasks.named<JacocoReport>("jacocoTestReport") {
+    dependsOn(functionalTestTask)
+    executionData(layout.buildDirectory.file("jacoco/functionalTest.exec"))
 }
 
 tasks.check {

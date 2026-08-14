@@ -96,7 +96,7 @@ public abstract class AbstractCrapAnalysisTask extends AbstractCrapTask {
             if (!text.diagnostics().isBlank()) {
                 getLogger().warn(text.diagnostics().stripTrailing());
             }
-            getLogger().lifecycle(text.standardOutput().stripTrailing());
+            getLogger().lifecycle("\n" + text.standardOutput().stripTrailing() + "\n");
 
             if (getJsonEnabled().get()) {
                 write(getJsonReport(), new JsonReportWriter().write(

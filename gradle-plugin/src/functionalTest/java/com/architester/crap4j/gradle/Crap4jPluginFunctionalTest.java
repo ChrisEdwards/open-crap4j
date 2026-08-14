@@ -12,25 +12,25 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.GradleRunner;
 import org.gradle.testkit.runner.TaskOutcome;
 import org.gradle.testkit.runner.UnexpectedBuildFailure;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Named;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.io.TempDir;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class Crap4jPluginFunctionalTest {
-    private static final String LATEST_GRADLE = "9.6.1";
+abstract class Crap4jPluginFunctionalTest {
+    private final String gradleVersion;
 
     @TempDir
     Path projectDirectory;
+
+    Crap4jPluginFunctionalTest(String gradleVersion) {
+        this.gradleVersion = gradleVersion;
+    }
 
     @BeforeEach
     void createProject() throws IOException {
@@ -40,14 +40,8 @@ class Crap4jPluginFunctionalTest {
         }
     }
 
-    Stream<Arguments> supportedGradleVersions() {
-        return Stream.of("8.5", LATEST_GRADLE)
-                .map(version -> Arguments.of(Named.of("Gradle " + version, version)));
-    }
-
-    @ParameterizedTest
-    @MethodSource("supportedGradleVersions")
-    void crapCheckWritesReportsBeforeFailingOnViolations(String gradleVersion) throws IOException {
+    @Test
+    void crapCheckWritesReportsBeforeFailingOnViolations() throws IOException {
         writeAggregatorBuild(1.0d, 1);
 
         BuildResult result = runAndFail(gradleVersion, "crapCheck");
@@ -60,9 +54,8 @@ class Crap4jPluginFunctionalTest {
                 .content().contains("<testsuite name=\"crap4j.crapCheck\"");
     }
 
-    @ParameterizedTest
-    @MethodSource("supportedGradleVersions")
-    void coveringBaselineLetsCrapCheckPass(String gradleVersion) throws IOException {
+    @Test
+    void coveringBaselineLetsCrapCheckPass() throws IOException {
         writeAggregatorBuild(1.0d, 1);
 
         run(gradleVersion, "crapBaseline");
@@ -74,24 +67,22 @@ class Crap4jPluginFunctionalTest {
                 .contains("\"status\": \"baselined\"");
     }
 
-    @ParameterizedTest
-    @MethodSource("supportedGradleVersions")
-    void crapReportIsAlwaysAdvisory(String gradleVersion) throws IOException {
+    @Test
+    void crapReportIsAlwaysAdvisory() throws IOException {
         writeAggregatorBuild(1.0d, 1);
 
         BuildResult result = run(gradleVersion, "crapReport");
 
         assertThat(result.task(":crapReport").getOutcome()).isEqualTo(TaskOutcome.SUCCESS);
-        assertThat(result.getOutput()).contains("open-crap4j - Report for module: fixture");
+        assertThat(result.getOutput()).contains(
+                "\n\nopen-crap4j - Report for module: fixture\n\nthreshold");
         assertThat(projectDirectory.resolve("build/reports/crap4j/crapReport/report.json"))
                 .content().contains("\"status\": \"advisory\"")
                 .contains("\"advisory\": true");
     }
 
-    @ParameterizedTest
-    @MethodSource("supportedGradleVersions")
-    void secondIdenticalRunReusesConfigurationCacheAndIsUpToDate(String gradleVersion)
-            throws IOException {
+    @Test
+    void secondIdenticalRunReusesConfigurationCacheAndIsUpToDate() throws IOException {
         Files.writeString(projectDirectory.resolve("build.gradle"), """
                 plugins {
                     id 'com.architester.crap4j'
@@ -109,9 +100,8 @@ class Crap4jPluginFunctionalTest {
         assertThat(second.getOutput()).containsIgnoringCase("configuration cache");
     }
 
-    @ParameterizedTest
-    @MethodSource("supportedGradleVersions")
-    void attachToCheckControlsTheJavaCheckLifecycle(String gradleVersion) throws IOException {
+    @Test
+    void attachToCheckControlsTheJavaCheckLifecycle() throws IOException {
         writeJavaBuild(false);
         BuildResult detached = run(gradleVersion, "check", "--dry-run");
         assertThat(detached.getOutput()).doesNotContain(":crapCheck SKIPPED");
@@ -121,9 +111,8 @@ class Crap4jPluginFunctionalTest {
         assertThat(attached.getOutput()).contains(":jacocoTestReport SKIPPED", ":crapCheck SKIPPED");
     }
 
-    @ParameterizedTest
-    @MethodSource("supportedGradleVersions")
-    void crapBaselineUsesTheConventionPathAndSortsEntries(String gradleVersion) throws IOException {
+    @Test
+    void crapBaselineUsesTheConventionPathAndSortsEntries() throws IOException {
         writeAggregatorBuild(1.0d, 1);
 
         run(gradleVersion, "crapBaseline");
@@ -142,9 +131,8 @@ class Crap4jPluginFunctionalTest {
         assertThat(actualOrder).isNotEmpty().isSortedAccordingTo(Comparator.naturalOrder());
     }
 
-    @ParameterizedTest
-    @MethodSource("supportedGradleVersions")
-    void explicitlyConfiguredMissingBaselineIsAnError(String gradleVersion) throws IOException {
+    @Test
+    void explicitlyConfiguredMissingBaselineIsAnError() throws IOException {
         Files.writeString(projectDirectory.resolve("build.gradle"), """
                 plugins {
                     id 'com.architester.crap4j'
@@ -161,9 +149,8 @@ class Crap4jPluginFunctionalTest {
         assertThat(result.getOutput()).contains("crap4j-baseline.json", "doesn't exist");
     }
 
-    @ParameterizedTest
-    @MethodSource("supportedGradleVersions")
-    void baselineExtensionExposesTheConventionPath(String gradleVersion) throws IOException {
+    @Test
+    void baselineExtensionExposesTheConventionPath() throws IOException {
         Files.writeString(projectDirectory.resolve("build.gradle"), """
                 plugins {
                     id 'com.architester.crap4j'
@@ -182,9 +169,8 @@ class Crap4jPluginFunctionalTest {
                 projectDirectory.resolve("crap4j-baseline.json").toString());
     }
 
-    @ParameterizedTest
-    @MethodSource("supportedGradleVersions")
-    void javaProjectsUseJacocoTestReportByConvention(String gradleVersion) throws IOException {
+    @Test
+    void javaProjectsUseJacocoTestReportByConvention() throws IOException {
         Files.writeString(projectDirectory.resolve("build.gradle"), """
                 plugins {
                     id 'java'
@@ -205,9 +191,8 @@ class Crap4jPluginFunctionalTest {
         assertThat(result.task(":crapReport").getOutcome()).isEqualTo(TaskOutcome.SUCCESS);
     }
 
-    @ParameterizedTest
-    @MethodSource("supportedGradleVersions")
-    void javaProjectsCannotDisableJacocoXml(String gradleVersion) throws IOException {
+    @Test
+    void javaProjectsCannotDisableJacocoXml() throws IOException {
         Files.writeString(projectDirectory.resolve("build.gradle"), """
                 plugins {
                     id 'java'
@@ -224,9 +209,8 @@ class Crap4jPluginFunctionalTest {
         assertThat(result.getOutput()).contains("required", "cannot be changed");
     }
 
-    @ParameterizedTest
-    @MethodSource("supportedGradleVersions")
-    void formatsAndPerTaskOutputPathsAreConfigurable(String gradleVersion) throws IOException {
+    @Test
+    void formatsAndPerTaskOutputPathsAreConfigurable() throws IOException {
         Files.writeString(projectDirectory.resolve("build.gradle"), """
                 plugins {
                     id 'com.architester.crap4j'
@@ -251,9 +235,8 @@ class Crap4jPluginFunctionalTest {
         assertThat(projectDirectory.resolve("build/custom/crap.xml")).doesNotExist();
     }
 
-    @ParameterizedTest
-    @MethodSource("supportedGradleVersions")
-    void crapBaselineTightenRemovesSlackEntries(String gradleVersion) throws IOException {
+    @Test
+    void crapBaselineTightenRemovesSlackEntries() throws IOException {
         writeAggregatorBuild(1.0d, 1);
         run(gradleVersion, "crapBaseline");
 

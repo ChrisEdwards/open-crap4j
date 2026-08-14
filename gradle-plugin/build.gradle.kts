@@ -38,6 +38,8 @@ val functionalTestTask = tasks.register<Test>("functionalTest") {
     group = LifecycleBasePlugin.VERIFICATION_GROUP
     testClassesDirs = functionalTest.output.classesDirs
     classpath = functionalTest.runtimeClasspath
+    // Each fork owns one serial Gradle-version lane; finer parallelism contends on TestKit daemons.
+    maxParallelForks = 2
     shouldRunAfter(tasks.test)
 }
 

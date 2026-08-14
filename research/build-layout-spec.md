@@ -35,7 +35,7 @@ One shared version in root `gradle.properties`, starting at `0.1.0`. Stays 0.x u
 
 ## TestKit setup
 
-`gradle-plugin` uses `java-gradle-plugin` with a dedicated `functionalTest` source set registered through `gradlePlugin.testSourceSets`. Functional tests are parameterized over Gradle versions with `GradleRunner.withGradleVersion`, pinning **8.5** and **latest**. The matrix lives inside the test code, so a local `./gradlew build` proves both versions, and CI needs one job.
+`gradle-plugin` uses `java-gradle-plugin` with a dedicated `functionalTest` source set registered through `gradlePlugin.testSourceSets`. Functional tests run in one serial class lane per Gradle version with `GradleRunner.withGradleVersion`, pinning **8.5** and **latest**. Gradle runs the two class lanes in parallel forks, while each lane stays serial to avoid TestKit daemon contention. The matrix lives inside the test code, so a local `./gradlew build` proves both versions, and CI needs one job.
 
 The repo's own wrapper is the latest stable Gradle at scaffold time.
 

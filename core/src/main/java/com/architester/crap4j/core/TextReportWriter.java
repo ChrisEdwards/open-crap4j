@@ -90,7 +90,7 @@ public final class TextReportWriter {
 
     private static String heading(Optional<String> reportName) {
         return reportName.filter(name -> !name.isBlank())
-                .map(name -> "open-crap4j - Report for module: " + name.strip() + "\n")
+                .map(name -> "open-crap4j - Report for module: " + name.strip() + "\n\n")
                 .orElse("");
     }
 

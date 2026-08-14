@@ -43,7 +43,7 @@ class Crap4jCliTest {
         Result clean = run("", "check", "--report", report.toString());
         assertThat(clean.exitCode()).isZero();
         assertThat(clean.stdout()).startsWith(
-                "open-crap4j - Report for module: JaCoCo Coverage Report\nthreshold");
+                "open-crap4j - Report for module: JaCoCo Coverage Report\n\nthreshold");
     }
 
     @Test
@@ -53,7 +53,7 @@ class Crap4jCliTest {
 
         assertThat(clean.exitCode()).isZero();
         assertThat(clean.stdout()).startsWith(
-                "open-crap4j - Report for module: open-crap4j:core\nthreshold");
+                "open-crap4j - Report for module: open-crap4j:core\n\nthreshold");
         assertThat(clean.stdout()).doesNotContain("JaCoCo Coverage Report");
     }
 

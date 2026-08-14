@@ -47,7 +47,7 @@ class TextReportWriterTest {
                 OptionalInt.empty(), Optional.of("open-crap4j:core"));
 
         assertThat(output.standardOutput()).startsWith(
-                "open-crap4j - Report for module: open-crap4j:core\nthreshold 15.0");
+                "open-crap4j - Report for module: open-crap4j:core\n\nthreshold 15.0");
     }
 
     @Test

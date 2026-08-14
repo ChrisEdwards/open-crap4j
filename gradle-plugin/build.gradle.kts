@@ -11,6 +11,7 @@ base {
 
 dependencies {
     implementation(project(":core"))
+    testRuntimeOnly(gradleApi())
 }
 
 val functionalTest = sourceSets.create("functionalTest")

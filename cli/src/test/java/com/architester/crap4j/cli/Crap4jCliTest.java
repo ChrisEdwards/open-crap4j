@@ -34,7 +34,8 @@ class Crap4jCliTest {
         assertThat(noArgs.stdout()).startsWith("Usage: crap4j <verb>");
         assertThat(help.stdout()).contains("check", "report", "baseline", "tighten");
         assertThat(verbHelp.stdout()).startsWith("Usage: crap4j check --report <path>");
-        assertThat(verbHelp.stdout()).contains("--report-name <name>");
+        assertThat(verbHelp.stdout()).contains(
+                "--report-name <name>", "--github-summary <path>", "--github-annotations");
         assertThat(version.stdout()).startsWith("crap4j ");
     }
 
@@ -167,6 +168,36 @@ class Crap4jCliTest {
         assertThat(Files.readString(junit)).startsWith("<?xml").contains("<testsuites>");
         assertThat(skipped.exitCode()).isZero();
         assertThat(skipped.stderr()).contains("Skipped 1 changed file");
+    }
+
+    @Test
+    void writesGitHubSummaryAndAnnotations() throws Exception {
+        Path summary = work.resolve("summary.md");
+
+        Result result = run("", "report", "--report", report.toString(),
+                "--threshold=1", "--complexity-cap=1",
+                "--github-summary", summary.toString(),
+                "--github-annotations", "--source-root", "src/main/java");
+
+        assertThat(result.exitCode()).isZero();
+        assertThat(Files.readString(summary))
+                .contains("## CRAP report: JaCoCo Coverage Report")
+                .contains("### Highest CRAP scores", "| CRAP | cc | Coverage | Status | Method |");
+        assertThat(result.stdout())
+                .contains("::error file=src/main/java/")
+                .contains("title=CRAP ");
+    }
+
+    @Test
+    void sourceRootRequiresGitHubAnnotations() {
+        assertUsageError(run("", "report", "--report", report.toString(),
+                "--source-root", "src/main/java"), "--source-root requires");
+    }
+
+    @Test
+    void githubAnnotationsCannotCorruptJsonStdout() {
+        assertUsageError(run("", "report", "--report", report.toString(),
+                "--json-report", "-", "--github-annotations"), "cannot be combined");
     }
 
     @Test

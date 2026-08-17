@@ -40,6 +40,10 @@ jobs:
             echo "Tag version '$release_version' does not match gradle.properties version '$project_version'." >&2
             exit 1
           fi
+          if [[ ! "$release_version" =~ ^[1-9][0-9]*\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Version '$release_version' is not a valid release version (no 0.x, no snapshots, no pre-release suffixes)." >&2
+            exit 1
+          fi
           echo "value=$release_version" >> "$GITHUB_OUTPUT"
 
       - name: Build and test release artifacts
@@ -69,12 +73,6 @@ jobs:
     environment: release
     permissions:
       contents: read
-    env:
-      ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
-      ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
-      ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SIGNING_IN_MEMORY_KEY }}
-      ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_IN_MEMORY_KEY_PASSWORD }}
-      ORG_GRADLE_PROJECT_signAllPublications: "true"
     steps:
       - name: Check out the release tag
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
@@ -92,12 +90,27 @@ jobs:
 
       - name: Publish 1.0.0 to Central for user-managed release
         if: needs.build.outputs.version == '1.0.0'
+        env:
+          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SIGNING_IN_MEMORY_KEY }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_IN_MEMORY_KEY_PASSWORD }}
+          ORG_GRADLE_PROJECT_signAllPublications: "true"
         run: ./gradlew publishToMavenCentral --no-parallel
 
       - name: Publish and release to Central
         if: needs.build.outputs.version != '1.0.0'
+        env:
+          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SIGNING_IN_MEMORY_KEY }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_IN_MEMORY_KEY_PASSWORD }}
+          ORG_GRADLE_PROJECT_signAllPublications: "true"
         run: ./gradlew publishAndReleaseToMavenCentral --no-parallel
 
+  # If this job fails after publish-central succeeded, re-run only the failed
+  # job from the Actions UI. Do not re-run the full workflow — Central uploads
+  # are immutable and will reject a duplicate.
   publish-portal:
     name: Publish to Gradle Plugin Portal
     needs: [build, publish-central]
@@ -105,9 +118,6 @@ jobs:
     environment: release
     permissions:
       contents: read
-    env:
-      GRADLE_PUBLISH_KEY: ${{ secrets.GRADLE_PUBLISH_KEY }}
-      GRADLE_PUBLISH_SECRET: ${{ secrets.GRADLE_PUBLISH_SECRET }}
     steps:
       - name: Check out the release tag
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
@@ -124,6 +134,9 @@ jobs:
         uses: gradle/actions/setup-gradle@748248ddd2a24f49513d8f472f81c3a07d4d50e1 # v4.4.4
 
       - name: Publish Gradle plugin to the Plugin Portal
+        env:
+          GRADLE_PUBLISH_KEY: ${{ secrets.GRADLE_PUBLISH_KEY }}
+          GRADLE_PUBLISH_SECRET: ${{ secrets.GRADLE_PUBLISH_SECRET }}
         run: ./gradlew :gradle-plugin:publishPlugins
 
   github-release:

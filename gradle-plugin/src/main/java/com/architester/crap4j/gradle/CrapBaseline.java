@@ -9,8 +9,10 @@ import org.gradle.api.GradleException;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.work.DisableCachingByDefault;
 
 /** Writes a new baseline from the current report. */
+@DisableCachingByDefault(because = "The task writes a source-controlled baseline with generation metadata")
 public abstract class CrapBaseline extends AbstractCrapTask {
     @OutputFile
     public abstract RegularFileProperty getBaseline();

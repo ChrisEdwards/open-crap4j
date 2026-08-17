@@ -10,8 +10,10 @@ import org.gradle.api.GradleException;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.work.DisableCachingByDefault;
 
 /** Shrinks an existing baseline without admitting new debt. */
+@DisableCachingByDefault(because = "The task updates a source-controlled baseline in place")
 public abstract class CrapBaselineTighten extends AbstractCrapTask {
     @OutputFile
     public abstract RegularFileProperty getBaseline();

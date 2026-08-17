@@ -29,8 +29,10 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
+import org.gradle.work.DisableCachingByDefault;
 
 /** Thin Gradle wrapper around core gating and report writers. */
+@DisableCachingByDefault(because = "Reports may be written to user-selected output files")
 public abstract class AbstractCrapAnalysisTask extends AbstractCrapTask {
     @Input
     public abstract Property<String> getReportName();

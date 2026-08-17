@@ -8,6 +8,7 @@ import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.testing.Test
 import org.gradle.jvm.tasks.Jar
 import org.gradle.jvm.toolchain.JavaLanguageVersion
+import org.gradle.jvm.toolchain.JvmVendorSpec
 import org.gradle.testing.jacoco.plugins.JacocoPlugin
 import org.gradle.testing.jacoco.tasks.JacocoReport
 
@@ -18,6 +19,7 @@ class Crap4jJavaConventionsPlugin : Plugin<Project> {
 
         project.extensions.configure(JavaPluginExtension::class.java) {
             toolchain.languageVersion.set(JavaLanguageVersion.of(21))
+            toolchain.vendor.set(JvmVendorSpec.ADOPTIUM)
         }
 
         project.tasks.withType(JavaCompile::class.java).configureEach {
@@ -35,6 +37,10 @@ class Crap4jJavaConventionsPlugin : Plugin<Project> {
 
         project.tasks.withType(Jar::class.java).configureEach {
             manifest.attributes["Implementation-Version"] = project.version.toString()
+            isPreserveFileTimestamps = false
+            isReproducibleFileOrder = true
+            dirPermissions { unix("rwxr-xr-x") }
+            filePermissions { unix("rw-r--r--") }
         }
 
         project.tasks.withType(JacocoReport::class.java).configureEach {

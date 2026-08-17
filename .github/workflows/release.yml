@@ -1,0 +1,93 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions: {}
+
+jobs:
+  release:
+    name: Publish release
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+      artifact-metadata: write
+    env:
+      ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+      ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+      ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SIGNING_IN_MEMORY_KEY }}
+      ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_IN_MEMORY_KEY_PASSWORD }}
+      ORG_GRADLE_PROJECT_signAllPublications: "true"
+      GRADLE_PUBLISH_KEY: ${{ secrets.GRADLE_PUBLISH_KEY }}
+      GRADLE_PUBLISH_SECRET: ${{ secrets.GRADLE_PUBLISH_SECRET }}
+    steps:
+      - name: Check out the release tag
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - name: Set up Java
+        uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4.9.1
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@748248ddd2a24f49513d8f472f81c3a07d4d50e1 # v4.4.4
+
+      - name: Verify tag and project versions match
+        id: version
+        shell: bash
+        run: |
+          release_version="${GITHUB_REF_NAME#v}"
+          project_version="$(sed -n 's/^version=//p' gradle.properties)"
+          if [[ -z "$release_version" || "$release_version" != "$project_version" ]]; then
+            echo "Tag version '$release_version' does not match gradle.properties version '$project_version'." >&2
+            exit 1
+          fi
+          echo "value=$release_version" >> "$GITHUB_OUTPUT"
+
+      - name: Build and test release artifacts
+        run: ./gradlew build jacocoTestReport :cli:jar :cli:cyclonedxDirectBom
+
+      - name: Stage GitHub Release assets
+        shell: bash
+        env:
+          RELEASE_VERSION: ${{ steps.version.outputs.value }}
+        run: |
+          mkdir -p build/release
+          cp "cli/build/libs/crap4j-cli-${RELEASE_VERSION}.jar" \
+            "build/release/crap4j-cli-${RELEASE_VERSION}.jar"
+          cp cli/build/reports/cyclonedx-direct/bom.json \
+            "build/release/crap4j-cli-${RELEASE_VERSION}-bom.cdx.json"
+
+      - name: Publish 1.0.0 to Central for user-managed release
+        if: steps.version.outputs.value == '1.0.0'
+        run: ./gradlew publishToMavenCentral --no-parallel
+
+      - name: Publish and release to Central
+        if: steps.version.outputs.value != '1.0.0'
+        run: ./gradlew publishAndReleaseToMavenCentral --no-parallel
+
+      - name: Publish Gradle plugin to the Plugin Portal
+        run: ./gradlew :gradle-plugin:publishPlugins
+
+      - name: Attest CLI build provenance
+        uses: actions/attest@508db95dd578ae2727ebd6217d5ba78e4fbda05d # v4.2.1
+        with:
+          subject-path: build/release/crap4j-cli-${{ steps.version.outputs.value }}.jar
+
+      - name: Create immutable GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_VERSION: ${{ steps.version.outputs.value }}
+        run: >-
+          gh release create "$GITHUB_REF_NAME"
+          "build/release/crap4j-cli-${RELEASE_VERSION}.jar"
+          "build/release/crap4j-cli-${RELEASE_VERSION}-bom.cdx.json"
+          --verify-tag
+          --generate-notes
+          --title "$GITHUB_REF_NAME"

@@ -31,7 +31,7 @@ A plain `Jar` task in `cli`, no Shadow plugin. It merges the runtime classpath (
 
 ## Version management
 
-One shared version in root `gradle.properties`, starting at `0.1.0`. Stays 0.x until mcp-contrast is gated end to end. Each jar manifest carries `Implementation-Version`, and `crap4j --version` reads `Package.getImplementationVersion()`, so no generated source file exists.
+One shared version in root `gradle.properties`, starting at `0.1.0`. Stays 0.x until the acceptance bead proves the gate on an mcp-contrast branch, then 1.0.0 is the first published version and no 0.x ever publishes (amended 2026-08-16 by crap-diy.8, research/publishing-spec.md holds the release sequence). Each jar manifest carries `Implementation-Version`, and `crap4j --version` reads `Package.getImplementationVersion()`, so no generated source file exists.
 
 ## TestKit setup
 

@@ -10,6 +10,8 @@ CRAP(m) = cc(m)² × (1 − coverage(m))³ + cc(m)
 
 A simple method with no tests scores low. A complex method with no tests scores high. CRAP scales the coverage demand with complexity, so simple getters pass untested while a 15-branch parser must prove its branches are exercised.
 
+The CRAP metric and the original crap4j tool are the work of Alberto Savoia and Bob Evans. This project is an independent clean-room reimplementation for modern Java, Gradle, and JaCoCo, and it shares no code with the original.
+
 ## Quick start
 
 ### CLI

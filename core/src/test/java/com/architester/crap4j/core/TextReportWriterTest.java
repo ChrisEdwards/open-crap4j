@@ -15,13 +15,13 @@ class TextReportWriterTest {
             new GateConfig(15, 15, CoverageSelection.BRANCH_PREFERRED, false, false);
 
     @Test
-    void s1FirstRunMatchesTheLockedGolden() throws IOException {
+    void write_should_matchGolden_when_firstRun() throws IOException {
         assertThat(render(firstRunResult(), CONFIG, false, Optional.empty(), ReportProducer.GRADLE))
                 .isEqualTo(golden("s1"));
     }
 
     @Test
-    void s8CleanRunIsQuiet() {
+    void write_should_beQuiet_when_cleanRun() {
         GateResult result = paddedResult(List.of(), 12, List.of(), false);
 
         String report = new TextReportWriter().write(
@@ -39,7 +39,7 @@ class TextReportWriterTest {
     }
 
     @Test
-    void reportNameIsRenderedAsAHeading() {
+    void render_should_showHeading_when_reportNameProvided() {
         GateResult result = paddedResult(List.of(), 0, List.of(), false);
 
         TextReportOutput output = new TextReportWriter().render(
@@ -51,7 +51,7 @@ class TextReportWriterTest {
     }
 
     @Test
-    void s2BaselinedDebtMatchesTheLockedGolden() throws IOException {
+    void write_should_matchGolden_when_baselinedDebt() throws IOException {
         BaselineEntry recommendation = allowance(
                 "com/example/RecommendationMarkdownRenderer", "registerKnownTags", 38.5, 14);
         BaselineEntry search = allowance(
@@ -70,7 +70,7 @@ class TextReportWriterTest {
     }
 
     @Test
-    void s3SlackWarnMatchesTheLockedGolden() throws IOException {
+    void write_should_matchGolden_when_slackWarn() throws IOException {
         GateResult result = slackResult(false);
 
         assertThat(render(result, CONFIG, false, Optional.of("crap4j-baseline.json"), ReportProducer.GRADLE))
@@ -78,7 +78,7 @@ class TextReportWriterTest {
     }
 
     @Test
-    void s4SlackTightMatchesTheLockedGolden() throws IOException {
+    void write_should_matchGolden_when_slackTight() throws IOException {
         GateResult result = slackResult(true);
         GateConfig tight = new GateConfig(15, 15, CoverageSelection.BRANCH_PREFERRED, true, false);
 
@@ -87,7 +87,7 @@ class TextReportWriterTest {
     }
 
     @Test
-    void s5RegressionMatchesTheLockedGolden() throws IOException {
+    void write_should_matchGolden_when_regression() throws IOException {
         BaselineEntry search = allowance(
                 "com/example/SearchAppVulnerabilitiesTool", "doExecute", 18.52, 15);
         BaselineEntry recommendation = allowance(
@@ -107,7 +107,7 @@ class TextReportWriterTest {
     }
 
     @Test
-    void s6CoupledThresholdWarningsMatchTheLockedGoldens() throws IOException {
+    void write_should_matchGoldens_when_thresholdWarnings() throws IOException {
         GateResult empty = new GateResult(List.of(), 0, List.of(), List.of(), false);
         GateConfig unreachable =
                 new GateConfig(250, 15, CoverageSelection.BRANCH_PREFERRED, false, false);
@@ -128,7 +128,7 @@ class TextReportWriterTest {
     }
 
     @Test
-    void s7AdvisoryMatchesTheLockedGolden() throws IOException {
+    void write_should_matchGolden_when_advisory() throws IOException {
         GateResult result = firstRunResult();
 
         assertThat(render(result, CONFIG, true, Optional.empty(), ReportProducer.GRADLE))
@@ -136,7 +136,7 @@ class TextReportWriterTest {
     }
 
     @Test
-    void showPassingIsOptInAndCliWordingNamesVerbs() {
+    void write_should_showPassingAndUseCliWording_when_optedIn() {
         MethodAssessment passing = assessment(
                 "com/example/Service", "healthy", "Service.java", 10, 3, 1, 3,
                 MethodStatus.OK, List.of(), Optional.empty());

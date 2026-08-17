@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 
 class ScoringEngineTest {
     @Test
-    void scoresComplexityFifteenAtThreeQuarterBranchCoverage() {
+    void score_should_computeCrap_when_complexityFifteenAndPartialCoverage() {
         JacocoMethod method = method(
                 "execute",
                 "()V",
@@ -34,7 +34,7 @@ class ScoringEngineTest {
     }
 
     @Test
-    void matchesTheRemainingGoldenScores() {
+    void score_should_matchGoldenScores_when_mixedCoverage() {
         ScoringResult result = new ScoringEngine().score(
                 report(
                         method(
@@ -74,7 +74,7 @@ class ScoringEngineTest {
     }
 
     @Test
-    void appliesAllDefaultExclusionsAsOneSwitch() {
+    void score_should_excludeGeneratedClasses_when_defaultExclusions() {
         JacocoReport report = report(
                 jacocoClass("com/example/Ordinary", "Ordinary.java", "ordinary"),
                 jacocoClass("com/example/generated/Factory", "Factory.java", "generated"),
@@ -95,7 +95,7 @@ class ScoringEngineTest {
     }
 
     @Test
-    void appliesCustomPathGlobsAndSimpleClassNameRegexesWithoutDefaults() {
+    void score_should_applyCustomGlobsAndRegexes_when_customExclusions() {
         JacocoReport report = report(
                 jacocoClass("com/example/internal/Helper", "Helper.java", "internal"),
                 jacocoClass("com/example/ClientGenerated", "ClientGenerated.java", "generated"),
@@ -113,7 +113,7 @@ class ScoringEngineTest {
     }
 
     @Test
-    void sortsByScoreDescendingThenIdentityAscending() {
+    void score_should_sortByScoreDescThenIdentityAsc_when_multipleMethods() {
         JacocoClass zClass = new JacocoClass(
                 "com/example/Zed",
                 Optional.of("Zed.java"),
@@ -143,7 +143,7 @@ class ScoringEngineTest {
     }
 
     @Test
-    void treatsZeroTotalBranchesAsInstructionCoverageAndCountsStaticInitializers() {
+    void score_should_useInstructionCoverage_when_zeroBranches() {
         JacocoMethod ordinary = method(
                 "ordinary",
                 "()V",

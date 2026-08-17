@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 
 class JacocoMethodTest {
     @Test
-    void acceptsAnEmptyCounterMap() {
+    void counters_should_beEmpty_when_counterMapEmpty() {
         JacocoMethod method = new JacocoMethod("empty", "()V", OptionalInt.empty(), Map.of());
 
         assertThat(method.counters()).isEmpty();

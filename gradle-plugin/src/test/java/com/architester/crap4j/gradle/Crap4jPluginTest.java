@@ -31,7 +31,7 @@ class Crap4jPluginTest {
     }
 
     @Test
-    void applyingToAJavaProjectRegistersThePluginInterface() {
+    void apply_should_registerPluginAndTasks_when_javaPluginApplied() {
         Project project = ProjectBuilder.builder().build();
         project.getPluginManager().apply("java");
 
@@ -48,7 +48,7 @@ class Crap4jPluginTest {
     }
 
     @Test
-    void reportNameUsesTheQualifiedGradleProjectIdentity() {
+    void apply_should_qualifyReportName_when_subproject() {
         Project root = ProjectBuilder.builder().withName("open-crap4j").build();
         Project module = ProjectBuilder.builder().withName("core").withParent(root).build();
 
@@ -62,7 +62,7 @@ class Crap4jPluginTest {
     }
 
     @Test
-    void attachToCheckWiresCheckDependency() {
+    void apply_should_wireCheckDependency_when_attachToCheckEnabled() {
         Project project = ProjectBuilder.builder().build();
         project.getPluginManager().apply("java");
         project.getPluginManager().apply(Crap4jPlugin.class);
@@ -76,7 +76,7 @@ class Crap4jPluginTest {
     }
 
     @Test
-    void registerBaselineSetsConventionForBothTaskTypes() {
+    void registerBaseline_should_setConvention_when_bothTaskTypes() {
         Project project = projectWithPlugin();
 
         CrapBaseline baseline = (CrapBaseline) project.getTasks().getByName("crapBaseline");
@@ -89,7 +89,7 @@ class Crap4jPluginTest {
     }
 
     @Test
-    void registerAnalysisUsesConventionalBaselineWhenExtensionIsUnset() {
+    void registerAnalysis_should_useConventionalBaseline_when_extensionUnset() {
         Project project = projectWithPlugin();
 
         CrapReport report = (CrapReport) project.getTasks().getByName("crapReport");
@@ -100,7 +100,7 @@ class Crap4jPluginTest {
     }
 
     @Test
-    void registerAnalysisUsesExplicitBaselineFromExtension() {
+    void registerAnalysis_should_useExplicitBaseline_when_extensionSet() {
         Project project = projectWithPlugin();
         Crap4jExtension extension = project.getExtensions().getByType(Crap4jExtension.class);
         RegularFile explicit = project.getLayout().getProjectDirectory().file("my-baseline.json");
@@ -113,7 +113,7 @@ class Crap4jPluginTest {
     }
 
     @Test
-    void analyzeProducesReportOutput() throws IOException {
+    void analyze_should_writeJsonReport_when_executed() throws IOException {
         Project project = projectWithPlugin();
         Crap4jExtension extension = project.getExtensions().getByType(Crap4jExtension.class);
         extension.getJacocoXml().set(jacocoXml.toFile());
@@ -129,7 +129,7 @@ class Crap4jPluginTest {
     }
 
     @Test
-    void analyzeWritesJunitXmlWhenEnabled() throws IOException {
+    void analyze_should_writeJunitXml_when_enabled() throws IOException {
         Project project = projectWithPlugin();
         Crap4jExtension extension = project.getExtensions().getByType(Crap4jExtension.class);
         extension.getJacocoXml().set(jacocoXml.toFile());
@@ -144,7 +144,7 @@ class Crap4jPluginTest {
     }
 
     @Test
-    void analyzeSkipsJsonAndJunitWhenDisabled() {
+    void analyze_should_skipReports_when_formatsDisabled() {
         Project project = projectWithPlugin();
         Crap4jExtension extension = project.getExtensions().getByType(Crap4jExtension.class);
         extension.getJacocoXml().set(jacocoXml.toFile());
@@ -159,7 +159,7 @@ class Crap4jPluginTest {
     }
 
     @Test
-    void analyzeReadsBaselineWhenPresent() throws IOException {
+    void analyze_should_readBaseline_when_baselinePresent() throws IOException {
         Project project = projectWithPlugin();
         Crap4jExtension extension = project.getExtensions().getByType(Crap4jExtension.class);
         extension.getJacocoXml().set(jacocoXml.toFile());
@@ -185,7 +185,7 @@ class Crap4jPluginTest {
     }
 
     @Test
-    void crapCheckThrowsOnViolations() {
+    void check_should_throw_when_violationsFound() {
         Project project = projectWithPlugin();
         Crap4jExtension extension = project.getExtensions().getByType(Crap4jExtension.class);
         extension.getJacocoXml().set(jacocoXml.toFile());
@@ -199,7 +199,7 @@ class Crap4jPluginTest {
     }
 
     @Test
-    void crapCheckPassesInAdvisoryMode() {
+    void check_should_pass_when_advisoryMode() {
         Project project = projectWithPlugin();
         Crap4jExtension extension = project.getExtensions().getByType(Crap4jExtension.class);
         extension.getJacocoXml().set(jacocoXml.toFile());

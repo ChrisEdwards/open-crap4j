@@ -7,46 +7,46 @@ import org.junit.jupiter.api.Test;
 
 class JsonTextTest {
     @Test
-    void quotesPlainString() {
+    void quoted_should_wrapInQuotes_when_plainString() {
         assertThat(JsonText.quoted("hello")).isEqualTo("\"hello\"");
     }
 
     @Test
-    void escapesSpecialCharacters() {
+    void quoted_should_escapeQuoteAndBackslash_when_specialChars() {
         assertThat(JsonText.quoted("a\"b\\c")).isEqualTo("\"a\\\"b\\\\c\"");
     }
 
     @Test
-    void escapesControlCharacters() {
+    void quoted_should_escapeNamedSequences_when_controlChars() {
         assertThat(JsonText.quoted("\b\f\n\r\t"))
                 .isEqualTo("\"\\b\\f\\n\\r\\t\"");
     }
 
     @Test
-    void escapesLowControlCharsAsUnicode() {
+    void quoted_should_escapeAsUnicode_when_lowControlChars() {
         assertThat(JsonText.quoted(""))
                 .isEqualTo("\"\\u0001\\u001f\"");
     }
 
     @Test
-    void rejectsInfiniteDecimal() {
+    void decimal_should_throw_when_infinity() {
         assertThatThrownBy(() -> JsonText.decimal(Double.POSITIVE_INFINITY, 2))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
-    void rejectsNaN() {
+    void decimal_should_throw_when_nan() {
         assertThatThrownBy(() -> JsonText.decimal(Double.NaN, 2))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
-    void policyDecimalPreservesTrailingZero() {
+    void policyDecimal_should_preserveTrailingZero_when_wholeNumber() {
         assertThat(JsonText.policyDecimal(15.0)).isEqualTo("15.0");
     }
 
     @Test
-    void policyDecimalStripsExtraTrailingZeros() {
+    void policyDecimal_should_stripTrailingZeros_when_extraPrecision() {
         assertThat(JsonText.policyDecimal(15.250)).isEqualTo("15.25");
     }
 }

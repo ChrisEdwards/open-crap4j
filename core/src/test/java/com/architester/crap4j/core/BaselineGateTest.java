@@ -14,7 +14,7 @@ class BaselineGateTest {
             new GateConfig(15.0, 15, CoverageSelection.BRANCH_PREFERRED, false, false);
 
     @Test
-    void appliesTheFourGatingRules() {
+    void evaluate_should_applyGatingRules_when_methodsAtBoundaries() {
         assertThat(evaluate(method(15.0, 15), null).methods().get(0).status())
                 .isEqualTo(MethodStatus.OK);
 
@@ -44,7 +44,7 @@ class BaselineGateTest {
     }
 
     @Test
-    void bothRegressionRatchetsAreIndependent() {
+    void evaluate_should_reportBothRegressions_when_crapAndComplexityExceedAllowance() {
         Baseline allowance = baseline(entry(20.0, 16));
 
         assertAssessment(
@@ -59,7 +59,7 @@ class BaselineGateTest {
     }
 
     @Test
-    void classifiesEverySlackReasonOnBothSidesOfItsBoundary() {
+    void evaluate_should_classifySlackReasons_when_allowanceExceedsActual() {
         MethodKey gone = new MethodKey("com/example/Gone", "run", "()V");
         Baseline baseline = baseline(
                 new BaselineEntry(gone, 20.0, 16),
@@ -82,7 +82,7 @@ class BaselineGateTest {
     }
 
     @Test
-    void tightBaselineCountsEverySlackEntryAsAViolation() {
+    void evaluate_should_countSlackAsViolation_when_tightBaselineEnabled() {
         GateConfig strict =
                 new GateConfig(15.0, 15, CoverageSelection.BRANCH_PREFERRED, true, false);
         GateResult result = new BaselineGate().evaluate(
@@ -96,7 +96,7 @@ class BaselineGateTest {
     }
 
     @Test
-    void changedFileModeGatesPresentMethodsButDisablesSlackDetection() {
+    void evaluate_should_disableSlack_when_changedFileMode() {
         GateConfig changedFiles =
                 new GateConfig(15.0, 15, CoverageSelection.BRANCH_PREFERRED, true, true);
         Baseline baseline = baseline(
@@ -114,7 +114,7 @@ class BaselineGateTest {
     }
 
     @Test
-    void rejectsSemanticConfigMismatchesAndWarnsOnPolicyChanges() {
+    void evaluate_should_rejectOrWarn_when_baselineConfigMismatches() {
         Baseline valid = baseline(entry(20.0, 16));
         Baseline wrongVersion = new Baseline(
                 2,

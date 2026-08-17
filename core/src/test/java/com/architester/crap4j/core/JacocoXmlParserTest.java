@@ -13,7 +13,7 @@ class JacocoXmlParserTest {
     private static final Path FIXTURES = Path.of("src/test/resources/jacoco");
 
     @Test
-    void parsesARealJacocoReportWithItsDoctype() throws Exception {
+    void parse_should_parseFullReport_when_realJacocoXml() throws Exception {
         JacocoReport report = new JacocoXmlParser().parse(FIXTURES.resolve("report.xml"));
 
         assertThat(report.name()).isEqualTo("JaCoCo Coverage Report");
@@ -44,7 +44,7 @@ class JacocoXmlParserTest {
     }
 
     @Test
-    void representsMissingMethodLinesAsAbsent() throws Exception {
+    void parse_should_reportAbsentLines_when_methodLinesOmitted() throws Exception {
         JacocoReport report = new JacocoXmlParser().parse(FIXTURES.resolve("nd.xml"));
 
         assertThat(report.packages())
@@ -61,7 +61,7 @@ class JacocoXmlParserTest {
     }
 
     @Test
-    void representsMissingSourceFileAsAbsent() throws Exception {
+    void parse_should_reportAbsentSourceFile_when_sourceFileOmitted() throws Exception {
         JacocoReport report = new JacocoXmlParser().parse(FIXTURES.resolve("nd.xml"));
 
         assertThat(report.packages().get(0).classes().get(0).sourceFile())
@@ -69,7 +69,7 @@ class JacocoXmlParserTest {
     }
 
     @Test
-    void parsesTheEnumOnlyFixture() throws Exception {
+    void parse_should_filterEnumSynthetics_when_enumClass() throws Exception {
         JacocoReport report = new JacocoXmlParser().parse(FIXTURES.resolve("enum.xml"));
 
         assertThat(report.packages())
@@ -86,7 +86,7 @@ class JacocoXmlParserTest {
     }
 
     @Test
-    void foldsPlainLambdaCountersIntoItsEnclosingMethod() throws Exception {
+    void parse_should_foldLambdaCounters_when_plainLambda() throws Exception {
         JacocoClass sample = parsedClass("report.xml", "Sample");
 
         JacocoMethod ordinary = method(sample, "ordinary", "()V");
@@ -102,7 +102,7 @@ class JacocoXmlParserTest {
     }
 
     @Test
-    void foldsOverloadedTargetsByLargestLineNotAfterTheLambda() throws Exception {
+    void parse_should_foldToClosestOverload_when_overloadedTarget() throws Exception {
         JacocoClass sample = parsedClass("report.xml", "Sample");
 
         JacocoMethod stringOverload = method(sample, "over", "(Ljava/lang/String;)V");
@@ -118,7 +118,7 @@ class JacocoXmlParserTest {
     }
 
     @Test
-    void foldsAnOrdinaryLambdaWhenItsLineEqualsTheTargetFirstLine() throws Exception {
+    void parse_should_foldLambda_when_lambdaLineEqualsTargetLine() throws Exception {
         JacocoClass parsedClass = parseClass("""
                 <method name="work" desc="()V" line="52">
                   <counter type="INSTRUCTION" missed="0" covered="2"/>
@@ -136,7 +136,7 @@ class JacocoXmlParserTest {
     }
 
     @Test
-    void foldsConstructorAndFieldInitializerLambdasIntoTheFirstLineTiedConstructor()
+    void parse_should_foldInitLambdas_when_constructorWithFieldInitializers()
             throws Exception {
         JacocoClass sample = parsedClass("report.xml", "Sample");
 
@@ -154,7 +154,7 @@ class JacocoXmlParserTest {
     }
 
     @Test
-    void foldsStaticInitializerLambdasAndThenSkipsTheInitializer() throws Exception {
+    void parse_should_foldAndSkip_when_staticInitializerLambdas() throws Exception {
         JacocoClass sample = parsedClass("report.xml", "Sample");
 
         assertThat(sample.methods())
@@ -163,7 +163,7 @@ class JacocoXmlParserTest {
     }
 
     @Test
-    void foldsDefensiveLambdaChainsTransitively() throws Exception {
+    void parse_should_foldTransitively_when_chainedLambdas() throws Exception {
         JacocoClass parsedClass = parseClass("""
                 <method name="source" desc="()V" line="10">
                   <counter type="INSTRUCTION" missed="0" covered="1"/>
@@ -184,7 +184,7 @@ class JacocoXmlParserTest {
     }
 
     @Test
-    void foldsNestedLambdasDirectlyIntoTheirSourceMethod() throws Exception {
+    void parse_should_foldDirectly_when_nestedLambdas() throws Exception {
         JacocoClass sample = parsedClass("report.xml", "Sample");
 
         assertThat(method(sample, "nested", "()V").counters())
@@ -195,7 +195,7 @@ class JacocoXmlParserTest {
     }
 
     @Test
-    void leavesSwitchArrowMethodAloneBecauseItHasNoSyntheticBody() throws Exception {
+    void parse_should_keepMethod_when_switchArrowWithoutSyntheticBody() throws Exception {
         JacocoClass sample = parsedClass("report.xml", "Sample");
 
         assertThat(method(sample, "sw", "(I)I").counters())
@@ -206,7 +206,7 @@ class JacocoXmlParserTest {
     }
 
     @Test
-    void foldsInterfaceDefaultAndStaticMethodLambdasNormally() throws Exception {
+    void parse_should_foldLambdas_when_interfaceDefaultAndStaticMethods() throws Exception {
         JacocoClass iface = parsedClass("report.xml", "Iface");
 
         assertThat(method(iface, "doIt", "()V").counters())
@@ -216,7 +216,7 @@ class JacocoXmlParserTest {
     }
 
     @Test
-    void foldsRecordCompactConstructorAndMethodLambdas() throws Exception {
+    void parse_should_foldLambdas_when_recordCompactConstructor() throws Exception {
         JacocoClass record = parsedClass("report.xml", "Rec");
 
         assertThat(method(record, "<init>", "(Ljava/util/List;)V").counters())
@@ -227,7 +227,7 @@ class JacocoXmlParserTest {
     }
 
     @Test
-    void foldsAnonymousClassLambdaOnlyWithinItsOwnClass() throws Exception {
+    void parse_should_foldWithinClass_when_anonymousClassLambda() throws Exception {
         JacocoClass outer = parsedClass("report.xml", "Anon");
         JacocoClass anonymous = parsedClass("report.xml", "Anon$1");
 
@@ -238,7 +238,7 @@ class JacocoXmlParserTest {
     }
 
     @Test
-    void keepsJdk8NullTargetStandalone() throws Exception {
+    void parse_should_keepStandalone_when_jdk8NullTarget() throws Exception {
         JacocoClass parsedClass = parseClass("""
                 <method name="lambda$null$0" desc="()V" line="1"/>
                 """);
@@ -249,7 +249,7 @@ class JacocoXmlParserTest {
     }
 
     @Test
-    void keepsLambdaStandaloneWhenItsGeneratedTargetWasFilteredOut() throws Exception {
+    void parse_should_keepStandalone_when_generatedTargetFilteredOut() throws Exception {
         JacocoClass parsedClass = parseClass("""
                 <method name="lambda$generated$1" desc="()V" line="2">
                   <counter type="INSTRUCTION" missed="1" covered="0"/>
@@ -264,7 +264,7 @@ class JacocoXmlParserTest {
     }
 
     @Test
-    void leavesRealLambdaAndScalaSyntheticNamesAlone() throws Exception {
+    void parse_should_keepNames_when_realLambdaOrScalaSynthetic() throws Exception {
         JacocoClass parsedClass = parseClass("""
                 <method name="lambda" desc="()V" line="1"/>
                 <method name="$anonfun$work$0" desc="()V" line="2"/>
@@ -276,7 +276,7 @@ class JacocoXmlParserTest {
     }
 
     @Test
-    void greedilyFindsMethodNamesContainingDollarSigns() throws Exception {
+    void parse_should_matchGreedily_when_methodNameContainsDollarSign() throws Exception {
         JacocoClass parsedClass = parseClass("""
                 <method name="foo$bar" desc="()V" line="1">
                   <counter type="INSTRUCTION" missed="2" covered="0"/>
@@ -295,7 +295,7 @@ class JacocoXmlParserTest {
     }
 
     @Test
-    void fallsBackToFirstOverloadWhenNoLinePrecedesTheLambda() throws Exception {
+    void parse_should_fallBackToFirstOverload_when_noLinePrecedesLambda() throws Exception {
         JacocoClass parsedClass = parseClass("""
                 <method name="work" desc="(I)V" line="20"/>
                 <method name="work" desc="(J)V" line="30"/>
@@ -310,7 +310,7 @@ class JacocoXmlParserTest {
     }
 
     @Test
-    void neverFoldsAcrossClassElements() throws Exception {
+    void parse_should_notFold_when_lambdaInDifferentClass() throws Exception {
         String xml = """
                 <report name="Classes">
                   <package name="example">
@@ -333,7 +333,7 @@ class JacocoXmlParserTest {
     }
 
     @Test
-    void leavesExternalEntitiesUnresolvedAndClassNamesInSlashForm() throws Exception {
+    void parse_should_keepSlashFormNames_when_externalEntities() throws Exception {
         JacocoReport report = new JacocoXmlParser().parse(FIXTURES.resolve("external-entity.xml"));
 
         JacocoClass parsedClass = report.packages().get(0).classes().get(0);
@@ -343,7 +343,7 @@ class JacocoXmlParserTest {
     }
 
     @Test
-    void parsesPackagesNestedInGroups() throws Exception {
+    void parse_should_findPackages_when_nestedInGroups() throws Exception {
         String xml = """
                 <report name="Grouped">
                   <group name="application">

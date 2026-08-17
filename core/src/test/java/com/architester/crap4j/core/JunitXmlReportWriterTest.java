@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 
 class JunitXmlReportWriterTest {
     @Test
-    void writesTheLockedDocumentShapeAndStatusMapping() {
+    void write_should_matchGolden_when_fullScenarioWithStatusMapping() {
         BaselineEntry allowance = new BaselineEntry(
                 new MethodKey("com/example/Debt", "old", "()V"), 18.52, 15);
         MethodAssessment violation = assessment(
@@ -65,7 +65,7 @@ class JunitXmlReportWriterTest {
     }
 
     @Test
-    void decodesEveryJvmParameterShapeWithoutReturnTypes() {
+    void parameterList_should_decodeAllShapes_when_variousDescriptors() {
         assertThat(JvmDescriptors.parameterList("(Ljava/lang/String;I)V"))
                 .isEqualTo("String, int");
         assertThat(JvmDescriptors.parameterList("([[I[Ljava/lang/String;)Ljava/lang/Object;"))
@@ -75,7 +75,7 @@ class JunitXmlReportWriterTest {
     }
 
     @Test
-    void failureRowsAlwaysEqualGateViolationsAcrossModes() {
+    void write_should_matchFailuresToViolations_when_allModes() {
         MethodAssessment violation = assessment(
                 "A", "bad", "()V", 4, 0, 20,
                 MethodStatus.VIOLATION, List.of(GateReason.CRAP_OVER_THRESHOLD), Optional.empty());
@@ -113,7 +113,7 @@ class JunitXmlReportWriterTest {
     }
 
     @Test
-    void keepsOverloadsDistinctAndAppendsDescriptorsOnlyForPrettyNameCollisions() {
+    void write_should_appendDescriptors_when_prettyNameCollisions() {
         GateResult result = new GateResult(
                 List.of(
                         assessment("com/example/Api", "parse", "(I)V", 1, 1, 1,
@@ -137,7 +137,7 @@ class JunitXmlReportWriterTest {
     }
 
     @Test
-    void emptyAnalysisStillWritesAValidSuite() {
+    void write_should_writeValidSuite_when_emptyAnalysis() {
         String xml = new JunitXmlReportWriter().write(
                 new GateResult(List.of(), 0, List.of(), List.of(), false),
                 config(false, false),
@@ -154,7 +154,7 @@ class JunitXmlReportWriterTest {
     }
 
     @Test
-    void allLockedScenariosAndChangedFileModeMatchByteGoldens() throws IOException {
+    void write_should_matchGoldens_when_allLockedScenarios() throws IOException {
         BaselineEntry debt = new BaselineEntry(new MethodKey("example/Debt", "work", "()V"), 20, 4);
         BaselineEntry improved =
                 new BaselineEntry(new MethodKey("example/Improved", "better", "()V"), 20, 4);
@@ -200,7 +200,7 @@ class JunitXmlReportWriterTest {
     }
 
     @Test
-    void escapesEveryXmlAttributeCharacterAndRejectsMalformedDescriptors() {
+    void write_should_escapeXmlChars_when_specialCharactersInNames() {
         GateResult result = gate(List.of(assessment(
                 "example/A&B", "say\"'", "()V", 1, 1, 1,
                 MethodStatus.OK, List.of(), Optional.empty())), List.of(), false);

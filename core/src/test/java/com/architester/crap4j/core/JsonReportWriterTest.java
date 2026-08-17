@@ -15,7 +15,7 @@ class JsonReportWriterTest {
             new GateConfig(15.0, 15, CoverageSelection.BRANCH_PREFERRED, false, false);
 
     @Test
-    void writesTheLockedJsonShapeAsAByteStableGolden() {
+    void write_should_matchGolden_when_fullScenario() {
         BaselineEntry allowance = new BaselineEntry(
                 new MethodKey("com/example/Baselined", "work", "()V"), 18.5, 15);
         GateResult result = new GateResult(
@@ -111,7 +111,7 @@ class JsonReportWriterTest {
     }
 
     @Test
-    void omitsOnlyFieldsWhoseOmissionIsSpecified() {
+    void write_should_omitOptionalFields_when_valuesAbsent() {
         ScoredMethod method = new ScoredMethod(
                 "Default", "run", "()V", Optional.empty(), OptionalInt.empty(),
                 1, 1.0, CoverageKind.INSTRUCTION, 1.0);
@@ -128,7 +128,7 @@ class JsonReportWriterTest {
     }
 
     @Test
-    void advisoryAndTightBaselineStatusesFollowActualEnforcement() {
+    void write_should_setCorrectStatus_when_advisoryOrTightBaseline() {
         GateResult violation = new GateResult(
                 List.of(assessment(method("A", "a", "()V", 16, 0, 20), MethodStatus.VIOLATION,
                         List.of(GateReason.CRAP_OVER_THRESHOLD), Optional.empty())),
@@ -149,7 +149,7 @@ class JsonReportWriterTest {
     }
 
     @Test
-    void allLockedScenariosMatchByteStableGoldensThroughScoringAndGating() throws IOException {
+    void write_should_matchGoldens_when_allLockedScenarios() throws IOException {
         Baseline debt = baseline(new MethodKey("com/example/Service", "run", "()V"), 20, 4);
         Baseline regressionAllowance =
                 baseline(new MethodKey("com/example/Service", "run", "()V"), 19, 4);

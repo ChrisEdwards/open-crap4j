@@ -14,7 +14,7 @@ class BaselineOperationsTest {
     private static final String NOW = "2026-08-13T12:00:00Z";
 
     @Test
-    void rebaselineStoresOnlyCurrentDebtRoundedToTwoDecimals() {
+    void rebaseline_should_storeOnlyDebt_when_mixOfPassingAndFailing() {
         ScoredMethod passing = method("passing", 15.0, 15);
         ScoredMethod debt = method("debt", 18.515, 16);
 
@@ -29,7 +29,7 @@ class BaselineOperationsTest {
     }
 
     @Test
-    void tightenDeletesGoneAndPassingEntriesAndLowersOnlyExcessAllowance() {
+    void tighten_should_removeSlackEntries_when_goneAndPassing() {
         ScoredMethod improved = method("improved", 20.0, 16);
         ScoredMethod passing = method("passing", 10.0, 10);
         ScoredMethod newDebt = method("newDebt", 30.0, 20);
@@ -52,7 +52,7 @@ class BaselineOperationsTest {
     }
 
     @Test
-    void tightenIsANoOpAtTheEpsilonBoundaryAndWhenAlreadyTight() {
+    void tighten_should_returnSameBaseline_when_atEpsilonBoundary() {
         ScoredMethod current = method("run", 20.0, 16);
         Baseline exactBoundary = baseline(entry("run", 20.05, 16));
 
@@ -75,7 +75,7 @@ class BaselineOperationsTest {
     }
 
     @Test
-    void tighteningLocksInImprovementBeforeLaterDrift() {
+    void tighten_should_lockInImprovement_when_scoreLaterDrifts() {
         ScoredMethod originalDebt = method("run", 92.0, 16);
         Baseline original = baseline(entry("run", 92.0, 16));
         ScoredMethod improved = method("run", 50.0, 16);
@@ -94,7 +94,7 @@ class BaselineOperationsTest {
     }
 
     @Test
-    void baselineWritesRefuseChangedFileMode() {
+    void rebaseline_should_throw_when_changedFileMode() {
         GateConfig changedFiles =
                 new GateConfig(15.0, 15, CoverageSelection.BRANCH_PREFERRED, false, true);
         ScoringResult scoring = new ScoringResult(List.of(method("run", 20.0, 16)), 0);

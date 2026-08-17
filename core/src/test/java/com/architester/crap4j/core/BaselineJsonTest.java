@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 
 class BaselineJsonTest {
     @Test
-    void serializesSortedEntriesAndRoundTripsByteIdentically() {
+    void write_should_sortEntriesAndRoundTrip_when_multipleEntries() {
         Baseline baseline = new Baseline(
                 1,
                 "0.1.0",
@@ -54,7 +54,7 @@ class BaselineJsonTest {
     }
 
     @Test
-    void serializesEmptyEntriesAndRoundTripsByteIdentically() {
+    void write_should_roundTrip_when_emptyEntries() {
         Baseline baseline = new Baseline(
                 1,
                 "0.1.0",
@@ -81,14 +81,14 @@ class BaselineJsonTest {
     }
 
     @Test
-    void rejectsMalformedJson() {
+    void read_should_throwParseException_when_malformedJson() {
         assertThatThrownBy(() -> BaselineJson.read("{"))
                 .isInstanceOf(BaselineParseException.class)
                 .hasMessageContaining("Expected an object key");
     }
 
     @Test
-    void rejectsMissingRequiredFields() {
+    void read_should_throwParseException_when_requiredFieldMissing() {
         String json = validEmptyBaselineJson().replace("  \"toolVersion\": \"0.1.0\",\n", "");
 
         assertThatThrownBy(() -> BaselineJson.read(json))
@@ -97,7 +97,7 @@ class BaselineJsonTest {
     }
 
     @Test
-    void rejectsFieldsWithWrongTypes() {
+    void read_should_throwParseException_when_fieldHasWrongType() {
         String json = validEmptyBaselineJson().replace("\"complexityCap\": 15", "\"complexityCap\": \"15\"");
 
         assertThatThrownBy(() -> BaselineJson.read(json))
@@ -106,7 +106,7 @@ class BaselineJsonTest {
     }
 
     @Test
-    void roundTripsStringEscapes() {
+    void write_should_roundTripEscapes_when_specialCharsInValue() {
         Baseline baseline = new Baseline(
                 1,
                 "v\"\\\b\f\n\r\t\u0001",
@@ -124,7 +124,7 @@ class BaselineJsonTest {
     }
 
     @Test
-    void parsesSlashAndUnicodeEscapes() {
+    void read_should_parseEscapes_when_slashAndUnicodePresent() {
         String json = validEmptyBaselineJson().replace("\"0.1.0\"", "\"a\\/b\\u0041\"");
 
         Baseline parsed = BaselineJson.read(json);
@@ -133,49 +133,49 @@ class BaselineJsonTest {
     }
 
     @Test
-    void rejectsUnterminatedString() {
+    void read_should_throwParseException_when_unterminatedString() {
         assertThatThrownBy(() -> BaselineJson.read("{\"a\": \"no end"))
                 .isInstanceOf(BaselineParseException.class)
                 .hasMessageContaining("Unterminated string");
     }
 
     @Test
-    void rejectsUnterminatedEscape() {
+    void read_should_throwParseException_when_unterminatedEscape() {
         assertThatThrownBy(() -> BaselineJson.read("{\"a\": \"ab\\"))
                 .isInstanceOf(BaselineParseException.class)
                 .hasMessageContaining("Unterminated escape");
     }
 
     @Test
-    void rejectsInvalidEscape() {
+    void read_should_throwParseException_when_invalidEscape() {
         assertThatThrownBy(() -> BaselineJson.read("{\"a\": \"\\x\"}"))
                 .isInstanceOf(BaselineParseException.class)
                 .hasMessageContaining("Invalid escape");
     }
 
     @Test
-    void rejectsIncompleteUnicodeEscape() {
+    void read_should_throwParseException_when_incompleteUnicodeEscape() {
         assertThatThrownBy(() -> BaselineJson.read("{\"a\": \"\\u12\"}"))
                 .isInstanceOf(BaselineParseException.class)
                 .hasMessageContaining("unicode escape");
     }
 
     @Test
-    void rejectsInvalidUnicodeEscape() {
+    void read_should_throwParseException_when_invalidUnicodeEscape() {
         assertThatThrownBy(() -> BaselineJson.read("{\"a\": \"\\u00zz\"}"))
                 .isInstanceOf(BaselineParseException.class)
                 .hasMessageContaining("Invalid unicode escape");
     }
 
     @Test
-    void rejectsTrailingContent() {
+    void read_should_throwParseException_when_trailingContent() {
         assertThatThrownBy(() -> BaselineJson.read(validEmptyBaselineJson() + "extra"))
                 .isInstanceOf(BaselineParseException.class)
                 .hasMessageContaining("Unexpected trailing content");
     }
 
     @Test
-    void rejectsPlusPrefixedNumbers() {
+    void read_should_throwParseException_when_plusPrefixedNumber() {
         String json = validEmptyBaselineJson().replace("\"threshold\": 15.0", "\"threshold\": +15.0");
 
         assertThatThrownBy(() -> BaselineJson.read(json))

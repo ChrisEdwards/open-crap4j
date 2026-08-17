@@ -1,6 +1,6 @@
 ## Test naming
 
-Use `<methodName>_should_<expectation>_when_<scenario>` for test method names.
+Use `<methodName>_should_<expectation>_when_<condition>` for test method names.
 
 ## Agent skills
 

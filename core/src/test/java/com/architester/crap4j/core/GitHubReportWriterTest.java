@@ -12,7 +12,7 @@ class GitHubReportWriterTest {
             new GateConfig(15, 15, CoverageSelection.BRANCH_PREFERRED, false, false);
 
     @Test
-    void summaryShowsTotalsAndHighestScores() {
+    void summary_should_showTotalsAndHighestScores_when_mixedStatuses() {
         GateResult result = new GateResult(List.of(
                 assessment("com/example/Risky", "parse", 30, MethodStatus.VIOLATION),
                 assessment("com/example/Debt", "decode", 20, MethodStatus.BASELINED),
@@ -30,7 +30,7 @@ class GitHubReportWriterTest {
     }
 
     @Test
-    void annotationsPointViolationsAtSourceLines() {
+    void annotations_should_pointAtSourceLines_when_violationsPresent() {
         GateResult result = new GateResult(List.of(
                 assessment("com/example/Risky", "parse", 30, MethodStatus.VIOLATION),
                 assessment("com/example/Safe", "read", 4, MethodStatus.OK)),

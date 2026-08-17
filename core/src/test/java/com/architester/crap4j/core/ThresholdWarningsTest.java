@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 
 class ThresholdWarningsTest {
     @Test
-    void warnsWhenTheThresholdEqualsTheWorstScoreAllowedByTheCap() {
+    void compute_should_warnUnreachable_when_thresholdEqualsWorstScore() {
         assertThat(ThresholdWarnings.compute(240.0, 15))
                 .singleElement()
                 .satisfies(warning -> {
@@ -24,7 +24,7 @@ class ThresholdWarningsTest {
     }
 
     @Test
-    void warnsOnlyWhenTheThresholdIsStrictlyBelowTheCap() {
+    void compute_should_warnHiddenCap_when_thresholdBelowCap() {
         assertThat(ThresholdWarnings.compute(Math.nextDown(15.0), 15))
                 .singleElement()
                 .satisfies(warning -> {

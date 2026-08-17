@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 
 class ChangedFileSelectorTest {
     @Test
-    void appliesEveryLockedPathBoundaryRule() {
+    void select_should_matchPathBoundaries_when_variousPathFormats() {
         JacocoReport report = report(
                 new JacocoPackage("com/example", List.of(type("com/example/Foo", "Foo.java"))),
                 new JacocoPackage("", List.of(type("DefaultFoo", "Foo.java"))));
@@ -27,7 +27,7 @@ class ChangedFileSelectorTest {
     }
 
     @Test
-    void slicesTheRealFixtureToEveryClassFromOneSourceFile() throws Exception {
+    void select_should_includeAllClasses_when_sourceFileMatches() throws Exception {
         JacocoReport report = new JacocoXmlParser().parse(
                 Path.of("../test-fixtures/jacoco/report.xml"));
 
@@ -45,7 +45,7 @@ class ChangedFileSelectorTest {
     }
 
     @Test
-    void emptyChangedSetIsACleanNoOpAndDisablesSlack() {
+    void select_should_returnEmptyReport_when_changedSetEmpty() {
         JacocoReport report = report(new JacocoPackage(
                 "com/example", List.of(type("com/example/Foo", "Foo.java"))));
         ChangedFileSelection selection = new ChangedFileSelector().select(report, List.of());

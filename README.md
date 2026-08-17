@@ -141,6 +141,9 @@ Exit codes. 0 = pass (or advisory), 1 = usage/input error, 2 = violations found.
 | `--report-name <name>` | check, report | Override the JaCoCo report name shown in the text heading |
 | `--json-report <path\|->` | check, report | Write JSON report to a file or stdout (`-`) |
 | `--junit-report <path>` | check, report | Write JUnit XML sidecar for CI test-report UIs |
+| `--github-summary <path>` | check, report | Append totals and the 20 highest CRAP scores to a GitHub job summary |
+| `--github-annotations` | check, report | Emit GitHub source annotations for violations |
+| `--source-root <path>` | check, report | Prefix annotation paths; requires `--github-annotations` |
 
 ### Default exclusions
 
@@ -188,6 +191,29 @@ Text report headings use the qualified Gradle project identity, such as
 `open-crap4j:core`, so adjacent multi-project output remains unambiguous.
 
 ## CI recipes
+
+### GitHub Actions summary, annotations, and full report
+
+The GitHub job summary shows totals and the 20 highest-scoring methods, violations
+become source-line annotations, and the JSON artifact contains every scored method.
+
+```yaml
+- name: CRAP report
+  run: |
+    java -jar crap4j-cli-0.1.0.jar report \
+      --report build/reports/jacoco/test/jacocoTestReport.xml \
+      --github-summary "$GITHUB_STEP_SUMMARY" \
+      --github-annotations \
+      --source-root src/main/java \
+      --json-report build/reports/crap4j/report.json
+
+- name: Upload full CRAP report
+  if: always()
+  uses: actions/upload-artifact@v4
+  with:
+    name: crap4j-report
+    path: build/reports/crap4j/report.json
+```
 
 ### GitHub Actions with JUnit sidecar
 

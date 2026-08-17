@@ -11,6 +11,7 @@ import com.architester.crap4j.core.CoverageSelection;
 import com.architester.crap4j.core.Exclusions;
 import com.architester.crap4j.core.GateConfig;
 import com.architester.crap4j.core.GateResult;
+import com.architester.crap4j.core.GitHubReportWriter;
 import com.architester.crap4j.core.JacocoReport;
 import com.architester.crap4j.core.JacocoXmlParser;
 import com.architester.crap4j.core.JsonReportWriter;
@@ -28,6 +29,7 @@ import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -152,7 +154,36 @@ public final class Crap4jCli {
                     gate, config, options.verb().commandName(), ReportProducer.CLI);
             Files.writeString(resolve(workingDirectory, options.junitReport().orElseThrow()), junit);
         }
+        writeGitHubOutputs(
+                options, gate, config, report.name(), standardOutput, workingDirectory);
         return options.verb().gates() && !advisory && gate.violations() > 0 ? 2 : 0;
+    }
+
+    private static void writeGitHubOutputs(
+            CliArguments options,
+            GateResult gate,
+            GateConfig config,
+            String defaultReportName,
+            PrintStream standardOutput,
+            Path workingDirectory) throws IOException {
+        GitHubReportWriter github = new GitHubReportWriter();
+        String reportName = options.reportName().orElse(defaultReportName);
+        if (options.githubSummary().isPresent()) {
+            Path summary = resolve(workingDirectory, options.githubSummary().orElseThrow());
+            Path parent = summary.getParent();
+            if (parent != null) {
+                Files.createDirectories(parent);
+            }
+            Files.writeString(
+                    summary,
+                    github.summary(gate, config, reportName),
+                    StandardOpenOption.CREATE,
+                    StandardOpenOption.APPEND);
+        }
+        if (options.githubAnnotations()) {
+            standardOutput.print(github.annotations(
+                    gate, config, options.sourceRoot().orElse("")));
+        }
     }
 
     private static BaselineLocation baselineLocation(
@@ -253,7 +284,10 @@ public final class Crap4jCli {
             help.append("  --show-passing <N>\n")
                     .append("  --report-name <name>\n")
                     .append("  --json-report <path|->\n")
-                    .append("  --junit-report <path>\n");
+                    .append("  --junit-report <path>\n")
+                    .append("  --github-summary <path>\n")
+                    .append("  --github-annotations\n")
+                    .append("  --source-root <path>\n");
         }
         if (verb.acceptsAdvisory()) {
             help.append("  --advisory\n");

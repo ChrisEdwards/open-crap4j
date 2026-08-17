@@ -106,6 +106,75 @@ class BaselineJsonTest {
     }
 
     @Test
+    void roundTripsStringEscapes() {
+        Baseline baseline = new Baseline(
+                1,
+                "v\"\\\b\f\n\r\t\u0001",
+                "2026-08-12T00:00:00Z",
+                CoverageSelection.BRANCH_PREFERRED,
+                15.0,
+                15,
+                List.of());
+
+        String json = BaselineJson.write(baseline);
+
+        assertThat(json).contains("\"toolVersion\": \"v\\\"\\\\\\b\\f\\n\\r\\t\\u0001\"");
+        Baseline parsed = BaselineJson.read(json);
+        assertThat(parsed.toolVersion()).isEqualTo("v\"\\\b\f\n\r\t\u0001");
+    }
+
+    @Test
+    void parsesSlashAndUnicodeEscapes() {
+        String json = validEmptyBaselineJson().replace("\"0.1.0\"", "\"a\\/b\\u0041\"");
+
+        Baseline parsed = BaselineJson.read(json);
+
+        assertThat(parsed.toolVersion()).isEqualTo("a/bA");
+    }
+
+    @Test
+    void rejectsUnterminatedString() {
+        assertThatThrownBy(() -> BaselineJson.read("{\"a\": \"no end"))
+                .isInstanceOf(BaselineParseException.class)
+                .hasMessageContaining("Unterminated string");
+    }
+
+    @Test
+    void rejectsUnterminatedEscape() {
+        assertThatThrownBy(() -> BaselineJson.read("{\"a\": \"ab\\"))
+                .isInstanceOf(BaselineParseException.class)
+                .hasMessageContaining("Unterminated escape");
+    }
+
+    @Test
+    void rejectsInvalidEscape() {
+        assertThatThrownBy(() -> BaselineJson.read("{\"a\": \"\\x\"}"))
+                .isInstanceOf(BaselineParseException.class)
+                .hasMessageContaining("Invalid escape");
+    }
+
+    @Test
+    void rejectsIncompleteUnicodeEscape() {
+        assertThatThrownBy(() -> BaselineJson.read("{\"a\": \"\\u12\"}"))
+                .isInstanceOf(BaselineParseException.class)
+                .hasMessageContaining("unicode escape");
+    }
+
+    @Test
+    void rejectsInvalidUnicodeEscape() {
+        assertThatThrownBy(() -> BaselineJson.read("{\"a\": \"\\u00zz\"}"))
+                .isInstanceOf(BaselineParseException.class)
+                .hasMessageContaining("Invalid unicode escape");
+    }
+
+    @Test
+    void rejectsTrailingContent() {
+        assertThatThrownBy(() -> BaselineJson.read(validEmptyBaselineJson() + "extra"))
+                .isInstanceOf(BaselineParseException.class)
+                .hasMessageContaining("Unexpected trailing content");
+    }
+
+    @Test
     void rejectsPlusPrefixedNumbers() {
         String json = validEmptyBaselineJson().replace("\"threshold\": 15.0", "\"threshold\": +15.0");
 

@@ -82,20 +82,9 @@ public final class Crap4jCli {
         if (!Files.isRegularFile(reportFile)) {
             throw new UsageException("Report does not exist: " + options.report());
         }
-        JacocoReport report = new JacocoXmlParser().parse(reportFile);
-        List<String> changedFiles = options.changedFiles().isPresent()
-                ? readChangedFiles(options.changedFiles().orElseThrow(), standardInput, workingDirectory)
-                : List.of();
-        if (options.changedFiles().isPresent()) {
-            warnIfOutdated(report, changedFiles, reportFile, workingDirectory, standardError);
-            ChangedFileSelection selection = new ChangedFileSelector().select(report, changedFiles);
-            report = selection.report();
-            if (selection.skippedFiles() > 0) {
-                standardError.println("Skipped " + selection.skippedFiles()
-                        + (selection.skippedFiles() == 1 ? " changed file" : " changed files")
-                        + " not present in the coverage report");
-            }
-        }
+        JacocoReport report = applyChangedFileFilter(
+                new JacocoXmlParser().parse(reportFile),
+                options, standardInput, reportFile, workingDirectory, standardError);
 
         ScoringResult scoring = new ScoringEngine().score(
                 report,
@@ -138,6 +127,43 @@ public final class Crap4jCli {
                 Optional.of(options.reportName().orElse(report.name())));
         standardError.print(text.diagnostics());
 
+        writeReportOutputs(options, gate, config, text, advisory, baselineDisplay,
+                report.name(), standardOutput, workingDirectory);
+        return options.verb().gates() && !advisory && gate.violations() > 0 ? 2 : 0;
+    }
+
+    private static JacocoReport applyChangedFileFilter(
+            JacocoReport report,
+            CliArguments options,
+            InputStream standardInput,
+            Path reportFile,
+            Path workingDirectory,
+            PrintStream standardError) throws IOException {
+        if (options.changedFiles().isEmpty()) {
+            return report;
+        }
+        List<String> changedFiles = readChangedFiles(
+                options.changedFiles().orElseThrow(), standardInput, workingDirectory);
+        warnIfOutdated(report, changedFiles, reportFile, workingDirectory, standardError);
+        ChangedFileSelection selection = new ChangedFileSelector().select(report, changedFiles);
+        if (selection.skippedFiles() > 0) {
+            standardError.println("Skipped " + selection.skippedFiles()
+                    + (selection.skippedFiles() == 1 ? " changed file" : " changed files")
+                    + " not present in the coverage report");
+        }
+        return selection.report();
+    }
+
+    private static void writeReportOutputs(
+            CliArguments options,
+            GateResult gate,
+            GateConfig config,
+            TextReportOutput text,
+            boolean advisory,
+            Optional<String> baselineDisplay,
+            String defaultReportName,
+            PrintStream standardOutput,
+            Path workingDirectory) throws IOException {
         String json = new JsonReportWriter().write(
                 gate, config, Main.toolVersion(), advisory, baselineDisplay);
         boolean jsonOnStdout = options.jsonReport().filter("-"::equals).isPresent();
@@ -155,8 +181,7 @@ public final class Crap4jCli {
             Files.writeString(resolve(workingDirectory, options.junitReport().orElseThrow()), junit);
         }
         writeGitHubOutputs(
-                options, gate, config, report.name(), standardOutput, workingDirectory);
-        return options.verb().gates() && !advisory && gate.violations() > 0 ? 2 : 0;
+                options, gate, config, defaultReportName, standardOutput, workingDirectory);
     }
 
     private static void writeGitHubOutputs(

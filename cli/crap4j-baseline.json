@@ -1,17 +1,9 @@
 {
   "formatVersion": 1,
   "toolVersion": "0.1.0",
-  "generated": "2026-08-17T01:05:36.897591Z",
+  "generated": "2026-08-17T01:27:52.739539Z",
   "coverageSelection": "branch-preferred",
   "threshold": 15.0,
   "complexityCap": 15,
-  "entries": [
-    {
-      "class": "com/architester/crap4j/cli/Crap4jCli",
-      "method": "execute",
-      "descriptor": "(Lcom/architester/crap4j/cli/CliArguments;Ljava/io/InputStream;Ljava/io/PrintStream;Ljava/io/PrintStream;Ljava/nio/file/Path;)I",
-      "crap": 19.07,
-      "complexity": 19
-    }
-  ]
+  "entries": [  ]
 }

@@ -201,6 +201,24 @@ class Crap4jCliTest {
     }
 
     @Test
+    void refusesMissingReportFile() {
+        assertUsageError(run("", "check", "--report", work.resolve("missing.xml").toString()),
+                "Report does not exist");
+    }
+
+    @Test
+    void pluralSkippedChangedFilesMessage() throws Exception {
+        Path changedFiles = work.resolve("changed.txt");
+        Files.writeString(changedFiles, "NoSuch1.java\nNoSuch2.java\n");
+
+        Result result = run("", "check", "--report", report.toString(),
+                "--changed-files", changedFiles.toString());
+
+        assertThat(result.exitCode()).isZero();
+        assertThat(result.stderr()).contains("Skipped 2 changed files");
+    }
+
+    @Test
     void baselineAndTightenWriteTheConfiguredFile() throws Exception {
         Path baseline = work.resolve("custom-baseline.json");
 

@@ -13,7 +13,7 @@ class Crap4jJavaConventionsPluginTest {
 
     @ParameterizedTest(name = "Gradle {0}")
     @ValueSource(strings = ["8.5", "9.6.1"])
-    fun `check rejects an external runtime dependency`(gradleVersion: String) {
+    fun zeroDependencyCheck_should_fail_when_externalRuntimeDependencyDeclared(gradleVersion: String) {
         writeBuild(
             """
             dependencies {
@@ -33,7 +33,7 @@ class Crap4jJavaConventionsPluginTest {
 
     @ParameterizedTest(name = "Gradle {0}")
     @ValueSource(strings = ["8.5", "9.6.1"])
-    fun `check accepts a project without external runtime dependencies`(gradleVersion: String) {
+    fun zeroDependencyCheck_should_pass_when_noExternalRuntimeDependencies(gradleVersion: String) {
         writeBuild("")
 
         val result = runner(gradleVersion).build()

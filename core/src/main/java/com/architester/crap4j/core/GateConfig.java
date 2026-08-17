@@ -10,6 +10,12 @@ public record GateConfig(
         boolean requireTightBaseline,
         boolean changedFileMode) {
     public GateConfig {
+        if (!Double.isFinite(threshold) || threshold < 0) {
+            throw new IllegalArgumentException("threshold must be a non-negative finite number: " + threshold);
+        }
+        if (complexityCap < 1) {
+            throw new IllegalArgumentException("complexityCap must be at least 1: " + complexityCap);
+        }
         Objects.requireNonNull(coverageSelection, "coverageSelection");
     }
 }

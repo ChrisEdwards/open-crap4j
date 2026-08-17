@@ -41,7 +41,7 @@ abstract class Crap4jPluginFunctionalTest {
     }
 
     @Test
-    void crapCheckWritesReportsBeforeFailingOnViolations() throws IOException {
+    void crapCheck_should_writeReportsBeforeFailing_when_violationsPresent() throws IOException {
         writeAggregatorBuild(1.0d, 1);
 
         BuildResult result = runAndFail(gradleVersion, "crapCheck");
@@ -55,7 +55,7 @@ abstract class Crap4jPluginFunctionalTest {
     }
 
     @Test
-    void coveringBaselineLetsCrapCheckPass() throws IOException {
+    void crapCheck_should_pass_when_baselineCoversDebt() throws IOException {
         writeAggregatorBuild(1.0d, 1);
 
         run(gradleVersion, "crapBaseline");
@@ -68,7 +68,7 @@ abstract class Crap4jPluginFunctionalTest {
     }
 
     @Test
-    void crapReportIsAlwaysAdvisory() throws IOException {
+    void crapReport_should_beAdvisory_when_always() throws IOException {
         writeAggregatorBuild(1.0d, 1);
 
         BuildResult result = run(gradleVersion, "crapReport");
@@ -82,7 +82,7 @@ abstract class Crap4jPluginFunctionalTest {
     }
 
     @Test
-    void secondIdenticalRunReusesConfigurationCacheAndIsUpToDate() throws IOException {
+    void crapCheck_should_reuseConfigCacheAndBeUpToDate_when_secondIdenticalRun() throws IOException {
         Files.writeString(projectDirectory.resolve("build.gradle"), """
                 plugins {
                     id 'com.architester.crap4j'
@@ -101,7 +101,7 @@ abstract class Crap4jPluginFunctionalTest {
     }
 
     @Test
-    void attachToCheckControlsTheJavaCheckLifecycle() throws IOException {
+    void attachToCheck_should_controlJavaCheckLifecycle_when_configured() throws IOException {
         writeJavaBuild(false);
         BuildResult detached = run(gradleVersion, "check", "--dry-run");
         assertThat(detached.getOutput()).doesNotContain(":crapCheck SKIPPED");
@@ -112,7 +112,7 @@ abstract class Crap4jPluginFunctionalTest {
     }
 
     @Test
-    void crapBaselineUsesTheConventionPathAndSortsEntries() throws IOException {
+    void crapBaseline_should_useConventionPathAndSortEntries_when_default() throws IOException {
         writeAggregatorBuild(1.0d, 1);
 
         run(gradleVersion, "crapBaseline");
@@ -132,7 +132,7 @@ abstract class Crap4jPluginFunctionalTest {
     }
 
     @Test
-    void explicitlyConfiguredMissingBaselineIsAnError() throws IOException {
+    void crapReport_should_fail_when_explicitBaselineMissing() throws IOException {
         Files.writeString(projectDirectory.resolve("build.gradle"), """
                 plugins {
                     id 'com.architester.crap4j'
@@ -150,7 +150,7 @@ abstract class Crap4jPluginFunctionalTest {
     }
 
     @Test
-    void baselineExtensionExposesTheConventionPath() throws IOException {
+    void baseline_should_exposeConventionPath_when_queried() throws IOException {
         Files.writeString(projectDirectory.resolve("build.gradle"), """
                 plugins {
                     id 'com.architester.crap4j'
@@ -170,7 +170,7 @@ abstract class Crap4jPluginFunctionalTest {
     }
 
     @Test
-    void javaProjectsUseJacocoTestReportByConvention() throws IOException {
+    void jacocoXml_should_useJacocoTestReport_when_javaPluginApplied() throws IOException {
         Files.writeString(projectDirectory.resolve("build.gradle"), """
                 plugins {
                     id 'java'
@@ -192,7 +192,7 @@ abstract class Crap4jPluginFunctionalTest {
     }
 
     @Test
-    void javaProjectsCannotDisableJacocoXml() throws IOException {
+    void jacocoXml_should_rejectDisable_when_javaPluginApplied() throws IOException {
         Files.writeString(projectDirectory.resolve("build.gradle"), """
                 plugins {
                     id 'java'
@@ -210,7 +210,7 @@ abstract class Crap4jPluginFunctionalTest {
     }
 
     @Test
-    void formatsAndPerTaskOutputPathsAreConfigurable() throws IOException {
+    void formats_should_respectConfiguration_when_customPathsSet() throws IOException {
         Files.writeString(projectDirectory.resolve("build.gradle"), """
                 plugins {
                     id 'com.architester.crap4j'
@@ -236,11 +236,13 @@ abstract class Crap4jPluginFunctionalTest {
     }
 
     @Test
-    void crapBaselineTightenRemovesSlackEntries() throws IOException {
+    void crapBaselineTighten_should_removeSlackEntries_when_baselinedMethodsGone() throws IOException {
         writeAggregatorBuild(1.0d, 1);
         run(gradleVersion, "crapBaseline");
 
-        writeAggregatorBuild(10_000.0d, 10_000);
+        Files.writeString(projectDirectory.resolve("jacoco.xml"),
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+                        + "<report name=\"empty\"></report>");
         run(gradleVersion, "crapBaselineTighten");
 
         assertThat(projectDirectory.resolve("crap4j-baseline.json"))

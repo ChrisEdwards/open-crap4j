@@ -24,9 +24,27 @@ class GitHubReportWriterTest {
         assertThat(summary)
                 .contains("## CRAP report: example:core")
                 .contains("**1 violations · 1 baselined · 1 passing**")
+                .doesNotContain("slack")
                 .contains("| 30.00 | 5 | 0.0% branch | ❌ violation | `com.example.Risky.parse` |")
                 .contains("| 4.00 | 5 | 0.0% branch | ✅ passing | `com.example.Safe.read` |");
         assertThat(summary.indexOf("Risky.parse")).isLessThan(summary.indexOf("Safe.read"));
+    }
+
+    @Test
+    void summary_should_showSlackCount_when_tightBaselineWithSlack() {
+        GateResult result = new GateResult(List.of(
+                assessment("com/example/Safe", "read", 4, MethodStatus.OK)),
+                0,
+                List.of(new SlackBaselineEntry(
+                        new MethodKey("com/example/Gone", "run", "()V"),
+                        SlackReason.METHOD_GONE)),
+                List.of(),
+                true);
+
+        String summary = new GitHubReportWriter().summary(result, CONFIG, "my-project");
+
+        assertThat(summary)
+                .contains("**1 violations (1 slack) · 0 baselined · 1 passing**");
     }
 
     @Test

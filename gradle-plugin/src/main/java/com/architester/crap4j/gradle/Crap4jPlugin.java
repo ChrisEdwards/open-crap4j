@@ -34,6 +34,7 @@ public final class Crap4jPlugin implements Plugin<Project> {
             project.getPluginManager().apply(JacocoPlugin.class);
             TaskProvider<JacocoReport> jacoco = project.getTasks().named("jacocoTestReport", JacocoReport.class);
             jacoco.configure(task -> {
+                task.dependsOn(project.getTasks().named("test"));
                 task.getReports().getXml().getRequired().set(true);
                 task.getReports().getXml().getRequired().disallowChanges();
                 task.getReports().getXml().getOutputLocation().convention(

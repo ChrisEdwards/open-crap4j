@@ -2,8 +2,7 @@ package com.architester.crap4j.core;
 
 /** Policy used to select the JaCoCo coverage counter. */
 public enum CoverageSelection {
-    BRANCH_PREFERRED("branch-preferred"),
-    INSTRUCTION_ONLY("instruction-only");
+    BRANCH_PREFERRED("branch-preferred");
 
     private final String serializedName;
 

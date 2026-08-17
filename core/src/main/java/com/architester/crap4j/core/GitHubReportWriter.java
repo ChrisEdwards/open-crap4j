@@ -11,9 +11,14 @@ public final class GitHubReportWriter {
         long passing = result.methods().stream()
                 .filter(method -> method.status() == MethodStatus.OK)
                 .count();
+        int slackViolations = result.requireTightBaseline() ? result.slackEntries().size() : 0;
         StringBuilder markdown = new StringBuilder("## CRAP report: ")
                 .append(markdown(reportName)).append("\n\n")
-                .append("**").append(result.methodViolations()).append(" violations · ")
+                .append("**").append(result.violations()).append(" violations");
+        if (slackViolations > 0) {
+            markdown.append(" (").append(slackViolations).append(" slack)");
+        }
+        markdown.append(" · ")
                 .append(result.baselinedDebt()).append(" baselined · ")
                 .append(passing).append(" passing**\n\n")
                 .append("Threshold **").append(JsonText.policyDecimal(config.threshold()))

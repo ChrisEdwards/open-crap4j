@@ -94,6 +94,34 @@ class BaselineOperationsTest {
     }
 
     @Test
+    void tighten_should_throw_when_thresholdDiffersFromBaseline() {
+        ScoredMethod method = method("run", 20.0, 16);
+        Baseline original = baseline(entry("run", 20.0, 16));
+        GateConfig higherThreshold =
+                new GateConfig(30.0, 15, CoverageSelection.BRANCH_PREFERRED, false, false);
+
+        assertThatThrownBy(() -> new BaselineOperations()
+                        .tighten(original, new ScoringResult(List.of(method), 0),
+                                higherThreshold, "0.2.0", NOW))
+                .isInstanceOf(BaselineMismatchException.class)
+                .hasMessageContaining("threshold");
+    }
+
+    @Test
+    void tighten_should_throw_when_complexityCapDiffersFromBaseline() {
+        ScoredMethod method = method("run", 20.0, 16);
+        Baseline original = baseline(entry("run", 20.0, 16));
+        GateConfig higherCap =
+                new GateConfig(15.0, 30, CoverageSelection.BRANCH_PREFERRED, false, false);
+
+        assertThatThrownBy(() -> new BaselineOperations()
+                        .tighten(original, new ScoringResult(List.of(method), 0),
+                                higherCap, "0.2.0", NOW))
+                .isInstanceOf(BaselineMismatchException.class)
+                .hasMessageContaining("complexity cap");
+    }
+
+    @Test
     void rebaseline_should_throw_when_changedFileMode() {
         GateConfig changedFiles =
                 new GateConfig(15.0, 15, CoverageSelection.BRANCH_PREFERRED, false, true);

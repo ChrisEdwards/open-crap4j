@@ -14,6 +14,8 @@ dependencies {
     testRuntimeOnly(gradleApi())
 }
 
+sourceSets.test { resources.srcDir(rootProject.layout.projectDirectory.dir("test-fixtures")) }
+
 val functionalTest = sourceSets.create("functionalTest")
 
 functionalTest.resources.srcDir(rootProject.layout.projectDirectory.dir("test-fixtures"))

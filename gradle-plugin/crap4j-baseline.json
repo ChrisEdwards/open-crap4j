@@ -1,38 +1,9 @@
 {
   "formatVersion": 1,
   "toolVersion": "0.1.0",
-  "generated": "2026-08-14T03:40:58.122176Z",
+  "generated": "2026-08-17T01:14:22.805120Z",
   "coverageSelection": "branch-preferred",
   "threshold": 15.0,
   "complexityCap": 15,
-  "entries": [
-    {
-      "class": "com/architester/crap4j/gradle/AbstractCrapAnalysisTask",
-      "method": "analyze",
-      "descriptor": "(Z)Lcom/architester/crap4j/core/GateResult;",
-      "crap": 90.00,
-      "complexity": 9
-    },
-    {
-      "class": "com/architester/crap4j/gradle/Crap4jPlugin",
-      "method": "apply",
-      "descriptor": "(Lorg/gradle/api/Project;)V",
-      "crap": 26.13,
-      "complexity": 11
-    },
-    {
-      "class": "com/architester/crap4j/gradle/Crap4jPlugin",
-      "method": "registerAnalysis",
-      "descriptor": "(Lorg/gradle/api/Project;Ljava/lang/String;Ljava/lang/Class;Lcom/architester/crap4j/gradle/Crap4jExtension;)Lorg/gradle/api/tasks/TaskProvider;",
-      "crap": 20.00,
-      "complexity": 4
-    },
-    {
-      "class": "com/architester/crap4j/gradle/Crap4jPlugin",
-      "method": "registerBaseline",
-      "descriptor": "(Lorg/gradle/api/Project;Ljava/lang/String;Ljava/lang/Class;Lcom/architester/crap4j/gradle/Crap4jExtension;)Lorg/gradle/api/tasks/TaskProvider;",
-      "crap": 20.00,
-      "complexity": 4
-    }
-  ]
+  "entries": [  ]
 }

@@ -24,154 +24,176 @@ class Crap4jCliTest {
     }
 
     @Test
-    void helpAndVersionUseTheCrap4jIdentity() {
-        Result noArgs = run("");
-        Result help = run("", "--help");
-        Result verbHelp = run("", "check", "--help");
-        Result version = run("", "--version");
-
-        assertThat(noArgs.exitCode()).isZero();
-        assertThat(noArgs.stdout()).startsWith("Usage: crap4j <verb>");
-        assertThat(help.stdout()).contains("check", "report", "baseline", "tighten");
-        assertThat(verbHelp.stdout()).startsWith("Usage: crap4j check --report <path>");
-        assertThat(verbHelp.stdout()).contains(
-                "--report-name <name>", "--github-summary <path>", "--github-annotations");
-        assertThat(version.stdout()).startsWith("crap4j ");
+    void run_should_printUsage_when_noArgs() {
+        Result result = run("");
+        assertThat(result.exitCode()).isZero();
+        assertThat(result.stdout()).startsWith("Usage: crap4j <verb>");
     }
 
     @Test
-    void checkPassesWithExitZero() {
-        Result clean = run("", "check", "--report", report.toString());
-        assertThat(clean.exitCode()).isZero();
-        assertThat(clean.stdout()).startsWith(
+    void run_should_printUsage_when_helpFlag() {
+        Result result = run("", "--help");
+        assertThat(result.stdout()).contains("check", "report", "baseline", "tighten");
+    }
+
+    @Test
+    void run_should_printVerbOptions_when_verbHelp() {
+        Result result = run("", "check", "--help");
+        assertThat(result.stdout()).startsWith("Usage: crap4j check --report <path>");
+        assertThat(result.stdout()).contains(
+                "--report-name <name>", "--github-summary <path>", "--github-annotations");
+    }
+
+    @Test
+    void run_should_printVersion_when_versionFlag() {
+        Result result = run("", "--version");
+        assertThat(result.stdout()).startsWith("crap4j ");
+    }
+
+    @Test
+    void check_should_exitZero_when_noViolations() {
+        Result result = run("", "check", "--report", report.toString());
+        assertThat(result.exitCode()).isZero();
+        assertThat(result.stdout()).startsWith(
                 "open-crap4j - Report for module: JaCoCo Coverage Report\n\nthreshold");
     }
 
     @Test
-    void reportNameOverridesTheJacocoName() {
-        Result clean = run("", "check", "--report", report.toString(),
+    void check_should_useCustomName_when_reportNameProvided() {
+        Result result = run("", "check", "--report", report.toString(),
                 "--report-name", "open-crap4j:core");
 
-        assertThat(clean.exitCode()).isZero();
-        assertThat(clean.stdout()).startsWith(
+        assertThat(result.exitCode()).isZero();
+        assertThat(result.stdout()).startsWith(
                 "open-crap4j - Report for module: open-crap4j:core\n\nthreshold");
-        assertThat(clean.stdout()).doesNotContain("JaCoCo Coverage Report");
+        assertThat(result.stdout()).doesNotContain("JaCoCo Coverage Report");
     }
 
     @Test
-    void enforcingCheckUsesExitTwoForViolations() {
-        Result failing = run("", "check", "--report", report.toString(),
+    void check_should_exitTwo_when_violationsFound() {
+        Result result = run("", "check", "--report", report.toString(),
                 "--threshold=1", "--complexity-cap=1");
-        assertThat(failing.exitCode()).isEqualTo(2);
-        assertThat(failing.stdout()).contains("FAIL:");
+        assertThat(result.exitCode()).isEqualTo(2);
+        assertThat(result.stdout()).contains("FAIL:");
     }
 
     @Test
-    void advisoryCheckUsesExitZeroForViolations() {
-        Result advisory = run("", "check", "--report", report.toString(),
+    void check_should_exitZero_when_advisoryMode() {
+        Result result = run("", "check", "--report", report.toString(),
                 "--threshold", "1", "--complexity-cap", "1", "--advisory");
-        assertThat(advisory.exitCode()).isZero();
-        assertThat(advisory.stdout()).contains("ADVISORY:");
+        assertThat(result.exitCode()).isZero();
+        assertThat(result.stdout()).contains("ADVISORY:");
     }
 
     @Test
-    void reportVerbAlwaysUsesExitZero() {
-        Result reportOnly = run("", "report", "--report", report.toString(),
+    void report_should_exitZero_when_violationsPresent() {
+        Result result = run("", "report", "--report", report.toString(),
                 "--threshold=1", "--complexity-cap=1");
-        assertThat(reportOnly.exitCode()).isZero();
-        assertThat(reportOnly.stdout()).contains("ADVISORY:");
+        assertThat(result.exitCode()).isZero();
+        assertThat(result.stdout()).contains("ADVISORY:");
     }
 
     @Test
-    void refusesMissingRequiredReport() {
+    void parse_should_failWithUsageError_when_reportFlagMissing() {
         assertUsageError(run("", "check"), "--report is required");
     }
 
     @Test
-    void refusesChangedFilesOnBaseline() {
+    void parse_should_failWithUsageError_when_changedFilesOnBaseline() {
         assertUsageError(run("", "baseline", "--report", report.toString(),
                 "--changed-files", "files.txt"), "--changed-files");
     }
 
     @Test
-    void refusesChangedFilesOnTighten() {
+    void parse_should_failWithUsageError_when_changedFilesOnTighten() {
         assertUsageError(run("", "tighten", "--report", report.toString(),
                 "--changed-files=files.txt"), "--changed-files");
     }
 
     @Test
-    void refusesTightBaselineWithChangedFilesOnCheck() {
+    void parse_should_failWithUsageError_when_tightBaselineWithChangedFilesOnCheck() {
         assertUsageError(run("", "check", "--report", report.toString(),
                 "--changed-files", "-", "--require-tight-baseline"),
                 "--require-tight-baseline");
     }
 
     @Test
-    void refusesTightBaselineWithChangedFilesOnReport() {
+    void parse_should_failWithUsageError_when_tightBaselineWithChangedFilesOnReport() {
         assertUsageError(run("", "report", "--report", report.toString(),
                 "--changed-files=-", "--require-tight-baseline"),
                 "--require-tight-baseline");
     }
 
     @Test
-    void refusesMissingExplicitBaselineOnCheck() {
+    void execute_should_failWithUsageError_when_explicitBaselineMissingOnCheck() {
         Path missing = work.resolve("missing.json");
         assertUsageError(run("", "check", "--report", report.toString(),
                 "--baseline", missing.toString()), "does not exist");
     }
 
     @Test
-    void refusesMissingExplicitBaselineOnReport() {
+    void execute_should_failWithUsageError_when_explicitBaselineMissingOnReport() {
         Path missing = work.resolve("missing.json");
         assertUsageError(run("", "report", "--report", report.toString(),
                 "--baseline=" + missing), "does not exist");
     }
 
     @Test
-    void refusesTightenWithoutABaseline() {
+    void tighten_should_failWithUsageError_when_noBaselineExists() {
         assertUsageError(run("", "tighten", "--report", report.toString()),
                 "no baseline");
     }
 
     @Test
-    void refusesDuplicateScalarFlags() {
+    void parse_should_failWithUsageError_when_duplicateScalarFlags() {
         assertUsageError(run("", "check", "--report", report.toString(),
                 "--threshold", "10", "--threshold=11"), "Duplicate flag");
     }
 
     @Test
-    void jsonDashIsTheOnlyStdoutAndChangedFilesDashReadsStdin() {
-        Result json = run("", "check", "--report", report.toString(), "--json-report", "-");
-        Result emptyChangedSet = run("", "check", "--report", report.toString(),
-                "--changed-files", "-");
+    void check_should_outputJsonOnly_when_jsonReportIsDash() {
+        Result result = run("", "check", "--report", report.toString(), "--json-report", "-");
 
-        assertThat(json.exitCode()).isZero();
-        assertThat(json.stdout()).startsWith("{").contains("\"formatVersion\": 1");
-        assertThat(json.stdout()).doesNotContain("open-crap4j");
-        assertThat(emptyChangedSet.exitCode()).isZero();
-        assertThat(emptyChangedSet.stdout()).contains("0 methods analyzed");
+        assertThat(result.exitCode()).isZero();
+        assertThat(result.stdout()).startsWith("{").contains("\"formatVersion\": 1");
+        assertThat(result.stdout()).doesNotContain("open-crap4j");
     }
 
     @Test
-    void writesJsonAndJunitFilesAndReportsUnmatchedChangedFiles() throws Exception {
+    void check_should_analyzeZeroMethods_when_changedFilesDashWithEmptyStdin() {
+        Result result = run("", "check", "--report", report.toString(),
+                "--changed-files", "-");
+
+        assertThat(result.exitCode()).isZero();
+        assertThat(result.stdout()).contains("0 methods analyzed");
+    }
+
+    @Test
+    void check_should_writeJsonAndJunitFiles_when_outputPathsProvided() throws Exception {
         Path json = work.resolve("report.json");
         Path junit = work.resolve("junit.xml");
-        Result outputs = run("", "check", "--report=" + report,
+
+        Result result = run("", "check", "--report=" + report,
                 "--json-report=" + json, "--junit-report", junit.toString(),
                 "--exclude", "**/nothing/**", "--exclude", "**/still-nothing/**",
                 "--exclude-class=.*Never", "--use-default-exclusions=false");
-        Result skipped = run("README.md\n", "check", "--report", report.toString(),
-                "--changed-files=-");
 
-        assertThat(outputs.exitCode()).isZero();
+        assertThat(result.exitCode()).isZero();
         assertThat(Files.readString(json)).startsWith("{").contains("\"status\"");
         assertThat(Files.readString(junit)).startsWith("<?xml").contains("<testsuites>");
-        assertThat(skipped.exitCode()).isZero();
-        assertThat(skipped.stderr()).contains("Skipped 1 changed file");
     }
 
     @Test
-    void writesGitHubSummaryAndAnnotations() throws Exception {
+    void check_should_reportSkippedCount_when_changedFileNotInReport() {
+        Result result = run("README.md\n", "check", "--report", report.toString(),
+                "--changed-files=-");
+
+        assertThat(result.exitCode()).isZero();
+        assertThat(result.stderr()).contains("Skipped 1 changed file");
+    }
+
+    @Test
+    void report_should_writeSummaryAndAnnotations_when_githubOptionsProvided() throws Exception {
         Path summary = work.resolve("summary.md");
 
         Result result = run("", "report", "--report", report.toString(),
@@ -189,25 +211,25 @@ class Crap4jCliTest {
     }
 
     @Test
-    void sourceRootRequiresGitHubAnnotations() {
+    void parse_should_failWithUsageError_when_sourceRootWithoutAnnotations() {
         assertUsageError(run("", "report", "--report", report.toString(),
                 "--source-root", "src/main/java"), "--source-root requires");
     }
 
     @Test
-    void githubAnnotationsCannotCorruptJsonStdout() {
+    void parse_should_failWithUsageError_when_annotationsWithJsonDash() {
         assertUsageError(run("", "report", "--report", report.toString(),
                 "--json-report", "-", "--github-annotations"), "cannot be combined");
     }
 
     @Test
-    void refusesMissingReportFile() {
+    void execute_should_failWithUsageError_when_reportFileDoesNotExist() {
         assertUsageError(run("", "check", "--report", work.resolve("missing.xml").toString()),
                 "Report does not exist");
     }
 
     @Test
-    void pluralSkippedChangedFilesMessage() throws Exception {
+    void check_should_usePluralMessage_when_multipleChangedFilesSkipped() throws Exception {
         Path changedFiles = work.resolve("changed.txt");
         Files.writeString(changedFiles, "NoSuch1.java\nNoSuch2.java\n");
 
@@ -219,21 +241,30 @@ class Crap4jCliTest {
     }
 
     @Test
-    void baselineAndTightenWriteTheConfiguredFile() throws Exception {
+    void baseline_should_writeFile_when_baselinePathProvided() throws Exception {
         Path baseline = work.resolve("custom-baseline.json");
 
-        Result created = run("", "baseline", "--report", report.toString(),
-                "--baseline", baseline.toString(), "--threshold=1", "--complexity-cap=1");
-        Result tightened = run("", "tighten", "--report", report.toString(),
+        Result result = run("", "baseline", "--report", report.toString(),
                 "--baseline", baseline.toString(), "--threshold=1", "--complexity-cap=1");
 
-        assertThat(created.exitCode()).isZero();
+        assertThat(result.exitCode()).isZero();
         assertThat(Files.readString(baseline)).contains("\"formatVersion\": 1", "\"entries\"");
-        assertThat(tightened.exitCode()).isZero();
     }
 
     @Test
-    void changedFileModeWarnsWhenAMatchedSourceIsNewerThanTheReport() throws Exception {
+    void tighten_should_writeFile_when_baselineExists() throws Exception {
+        Path baseline = work.resolve("custom-baseline.json");
+        run("", "baseline", "--report", report.toString(),
+                "--baseline", baseline.toString(), "--threshold=1", "--complexity-cap=1");
+
+        Result result = run("", "tighten", "--report", report.toString(),
+                "--baseline", baseline.toString(), "--threshold=1", "--complexity-cap=1");
+
+        assertThat(result.exitCode()).isZero();
+    }
+
+    @Test
+    void check_should_warnOutdatedReport_when_sourceIsNewerThanReport() throws Exception {
         Path source = work.resolve("Anon.java");
         Files.writeString(source, "class Anon {}");
         Files.setLastModifiedTime(report, FileTime.fromMillis(1_000));

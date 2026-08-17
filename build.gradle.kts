@@ -1,5 +1,6 @@
 import org.gradle.api.tasks.Exec
 import org.cyclonedx.gradle.CyclonedxDirectTask
+import org.cyclonedx.model.Component
 
 plugins {
     base
@@ -16,6 +17,30 @@ subprojects {
     tasks.named<CyclonedxDirectTask>("cyclonedxDirectBom") {
         includeConfigs = listOf("runtimeClasspath")
         testConfigs = emptyList()
+
+        if (project.path == ":cli") {
+            componentName.set("crap4j-cli")
+            projectType.set(Component.Type.APPLICATION)
+
+            val componentGroup = project.group.toString()
+            val componentVersion = project.version.toString()
+            val sourceCoreName = "core"
+            val publishedCoreName = "crap4j-core"
+            val sourceCorePurl =
+                "pkg:maven/$componentGroup/$sourceCoreName@$componentVersion?project_path=%3Acore"
+            val publishedCorePurl = "pkg:maven/$componentGroup/$publishedCoreName@$componentVersion"
+
+            // CycloneDX derives project dependencies from project.name and ignores both
+            // base.archivesName and the Maven publication coordinates.
+            doLast(
+                NormalizeCycloneDxBomAction(
+                    sourceCoreName,
+                    publishedCoreName,
+                    sourceCorePurl,
+                    publishedCorePurl,
+                ),
+            )
+        }
     }
 }
 

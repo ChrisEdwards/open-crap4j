@@ -28,48 +28,42 @@ def parse_report(path, module_name):
     for pkg in root.findall('package'):
         for cls in pkg.findall('class'):
             class_name = cls.get('name')
-            # raw per-method counters, keyed by method name
             raw_methods = {}
             for m in cls.findall('method'):
                 mname = m.get('name')
                 if mname == '<clinit>':
                     continue
                 counters = counter_dict(m)
-                raw_methods[mname] = counters
+                raw_methods[(mname, m.get('desc', ''))] = counters
 
-            # Fold lambda$NAME$N into NAME
             folded = defaultdict(lambda: {'INSTRUCTION': [0, 0], 'BRANCH': [0, 0], 'COMPLEXITY': [0, 0]})
-            real_names = set()
+            real_by_name = defaultdict(list)
 
-            for mname, counters in raw_methods.items():
+            for (mname, desc) in raw_methods:
+                if not LAMBDA_RE.match(mname):
+                    real_by_name[mname].append((mname, desc))
+
+            for (mname, desc), counters in raw_methods.items():
                 lam = LAMBDA_RE.match(mname)
-                target = lam.group(1) if lam else mname
-                if not lam:
-                    real_names.add(mname)
+                if lam:
+                    target_name = lam.group(1)
+                    targets = real_by_name.get(target_name, [])
+                    key = targets[0] if targets else (target_name, '')
+                else:
+                    key = (mname, desc)
                 for ctype in ('INSTRUCTION', 'BRANCH', 'COMPLEXITY'):
                     if ctype in counters:
                         missed, covered = counters[ctype]
-                        folded[target][ctype][0] += missed
-                        folded[target][ctype][1] += covered
+                        folded[key][ctype][0] += missed
+                        folded[key][ctype][1] += covered
 
             # Only emit methods that either are real methods themselves,
             # or lambdas whose target real method exists in this class.
             # (lambdas targeting methods not directly seen, e.g. static init
             # helpers, are still folded under their target name if present)
-            for name, counters in folded.items():
-                # "static" is a reserved word and can never be a real Java
-                # method name, so a folded group named "static" only exists
-                # because of a lambda$static$N synthetic method owned by a
-                # static initializer (<clinit>). Skip it, consistent with
-                # skipping <clinit> itself.
+            for (name, desc), counters in folded.items():
                 if name == 'static':
                     continue
-                # Skip if this "name" is itself only a lambda target that
-                # doesn't correspond to any real method entry AND wasn't a
-                # <clinit> (already filtered) - keep it anyway since lambda
-                # targets are legitimate method names (e.g. constructors,
-                # regular methods) even if the base method had no direct
-                # bytecode entry (rare). We still require some complexity data.
                 comp_missed, comp_covered = counters['COMPLEXITY']
                 if comp_missed == 0 and comp_covered == 0:
                     continue
@@ -93,6 +87,7 @@ def parse_report(path, module_name):
                     'module': module_name,
                     'class': class_name,
                     'method': name,
+                    'desc': desc,
                     'cc': cc,
                     'coverage': cov,
                     'cov_kind': cov_kind,
@@ -176,7 +171,10 @@ def main():
     print('class | method | cc | coverage% | kind | CRAP')
     for mm in top15:
         short_class = mm['class'].split('/')[-1]
-        print(f"{short_class} | {mm['method']} | {mm['cc']} | {mm['coverage']*100:.1f} | {mm['cov_kind']} | {mm['crap']:.2f}")
+        label = mm['method']
+        if mm.get('desc'):
+            label += mm['desc']
+        print(f"{short_class} | {label} | {mm['cc']} | {mm['coverage']*100:.1f} | {mm['cov_kind']} | {mm['crap']:.2f}")
 
     # cc >= 4 with branch coverage < 50%
     count = 0

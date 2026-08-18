@@ -15,8 +15,10 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
+import org.gradle.work.DisableCachingByDefault;
 
 /** Inputs and core analysis shared by all crap4j tasks. */
+@DisableCachingByDefault(because = "Outputs may be user-selected or source-controlled baseline files")
 public abstract class AbstractCrapTask extends DefaultTask {
     @InputFile
     @PathSensitive(PathSensitivity.RELATIVE)

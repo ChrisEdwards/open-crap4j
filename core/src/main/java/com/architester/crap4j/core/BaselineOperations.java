@@ -40,7 +40,9 @@ public final class BaselineOperations {
             String generated) {
         requireWholeRepo(config);
         GateResult result = new BaselineGate().evaluate(scoring, Optional.of(baseline), config);
-        if (result.slackEntries().isEmpty()) {
+        boolean policyChanged = Double.compare(baseline.threshold(), config.threshold()) != 0
+                || baseline.complexityCap() != config.complexityCap();
+        if (result.slackEntries().isEmpty() && !policyChanged) {
             return baseline;
         }
 
@@ -71,8 +73,8 @@ public final class BaselineOperations {
                 toolVersion,
                 generated,
                 baseline.coverageSelection(),
-                baseline.threshold(),
-                baseline.complexityCap(),
+                config.threshold(),
+                config.complexityCap(),
                 tightened);
     }
 

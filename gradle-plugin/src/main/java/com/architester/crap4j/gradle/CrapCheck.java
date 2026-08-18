@@ -3,8 +3,10 @@ package com.architester.crap4j.gradle;
 import com.architester.crap4j.core.GateResult;
 import org.gradle.api.GradleException;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.work.DisableCachingByDefault;
 
 /** Enforcing CRAP gate. */
+@DisableCachingByDefault(because = "Reports may be written to user-selected output files")
 public abstract class CrapCheck extends AbstractCrapAnalysisTask {
     @TaskAction
     public final void check() {

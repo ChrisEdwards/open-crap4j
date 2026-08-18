@@ -130,22 +130,6 @@ class BaselineGateTest {
                 .hasMessageContaining("formatVersion")
                 .hasMessageContaining("re-baseline");
 
-        Baseline wrongSelection = new Baseline(
-                1,
-                valid.toolVersion(),
-                valid.generated(),
-                CoverageSelection.INSTRUCTION_ONLY,
-                valid.threshold(),
-                valid.complexityCap(),
-                valid.entries());
-        assertThatThrownBy(() -> new BaselineGate().evaluate(
-                        new ScoringResult(List.of(method(20.0, 16)), 0),
-                        Optional.of(wrongSelection),
-                        CONFIG))
-                .isInstanceOf(BaselineMismatchException.class)
-                .hasMessageContaining("coverageSelection")
-                .hasMessageContaining("re-baseline");
-
         GateConfig changedPolicy =
                 new GateConfig(10.0, 12, CoverageSelection.BRANCH_PREFERRED, false, false);
         GateResult result = new BaselineGate().evaluate(

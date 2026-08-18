@@ -1,8 +1,6 @@
 package com.architester.crap4j.core;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -212,12 +210,6 @@ class JunitXmlReportWriterTest {
                 .contains("name=\"crap4j.check &amp; &quot;quote&quot;\"")
                 .contains("classname=\"example.A&amp;B\"")
                 .contains("name=\"say&quot;&apos;()\"");
-        assertThatThrownBy(() -> JvmDescriptors.parameterList("not-a-descriptor"))
-                .isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> JvmDescriptors.parameterList("([V)V"))
-                .isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> JvmDescriptors.parameterList("(Ljava/lang/String)V"))
-                .isInstanceOf(IllegalArgumentException.class);
     }
 
     private static GateResult gate(

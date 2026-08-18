@@ -187,6 +187,7 @@ abstract class Crap4jPluginFunctionalTest {
 
         BuildResult result = run(gradleVersion, "crapReport");
 
+        assertThat(result.task(":test")).isNotNull();
         assertThat(result.task(":jacocoTestReport")).isNotNull();
         assertThat(result.task(":crapReport").getOutcome()).isEqualTo(TaskOutcome.SUCCESS);
     }

@@ -39,9 +39,10 @@ public final class BaselineOperations {
             String toolVersion,
             String generated) {
         requireWholeRepo(config);
-        requirePolicyMatch(baseline, config);
         GateResult result = new BaselineGate().evaluate(scoring, Optional.of(baseline), config);
-        if (result.slackEntries().isEmpty()) {
+        boolean policyChanged = Double.compare(baseline.threshold(), config.threshold()) != 0
+                || baseline.complexityCap() != config.complexityCap();
+        if (result.slackEntries().isEmpty() && !policyChanged) {
             return baseline;
         }
 
@@ -72,31 +73,14 @@ public final class BaselineOperations {
                 toolVersion,
                 generated,
                 baseline.coverageSelection(),
-                baseline.threshold(),
-                baseline.complexityCap(),
+                config.threshold(),
+                config.complexityCap(),
                 tightened);
     }
 
     private static void requireWholeRepo(GateConfig config) {
         if (config.changedFileMode()) {
             throw new IllegalArgumentException("Baseline writes require whole-repo mode");
-        }
-    }
-
-    private static void requirePolicyMatch(Baseline baseline, GateConfig config) {
-        if (Double.compare(baseline.threshold(), config.threshold()) != 0) {
-            throw new BaselineMismatchException(
-                    "Tighten requires the current threshold ("
-                            + config.threshold()
-                            + ") to match the baseline threshold ("
-                            + baseline.threshold() + ")");
-        }
-        if (baseline.complexityCap() != config.complexityCap()) {
-            throw new BaselineMismatchException(
-                    "Tighten requires the current complexity cap ("
-                            + config.complexityCap()
-                            + ") to match the baseline complexity cap ("
-                            + baseline.complexityCap() + ")");
         }
     }
 

@@ -94,31 +94,55 @@ class BaselineOperationsTest {
     }
 
     @Test
-    void tighten_should_throw_when_thresholdDiffersFromBaseline() {
-        ScoredMethod method = method("run", 20.0, 16);
-        Baseline original = baseline(entry("run", 20.0, 16));
-        GateConfig higherThreshold =
-                new GateConfig(30.0, 15, CoverageSelection.BRANCH_PREFERRED, false, false);
+    void tighten_should_removeNewlyUnderLimitEntries_when_thresholdRaised() {
+        ScoredMethod underNewThreshold = method("fixed", 20.0, 14);
+        ScoredMethod stillOver = method("debt", 30.0, 16);
+        Baseline original = baseline(
+                entry("fixed", 20.0, 14),
+                entry("debt", 30.0, 16));
+        GateConfig raised = new GateConfig(25.0, 15, CoverageSelection.BRANCH_PREFERRED, false, false);
 
-        assertThatThrownBy(() -> new BaselineOperations()
-                        .tighten(original, new ScoringResult(List.of(method), 0),
-                                higherThreshold, "0.2.0", NOW))
-                .isInstanceOf(BaselineMismatchException.class)
-                .hasMessageContaining("threshold");
+        Baseline tightened = new BaselineOperations().tighten(
+                original, new ScoringResult(List.of(underNewThreshold, stillOver), 0),
+                raised, "0.2.0", NOW);
+
+        assertThat(tightened.entries())
+                .containsExactly(entry("debt", 30.0, 16));
+        assertThat(tightened.threshold()).isEqualTo(25.0);
     }
 
     @Test
-    void tighten_should_throw_when_complexityCapDiffersFromBaseline() {
-        ScoredMethod method = method("run", 20.0, 16);
-        Baseline original = baseline(entry("run", 20.0, 16));
-        GateConfig higherCap =
-                new GateConfig(15.0, 30, CoverageSelection.BRANCH_PREFERRED, false, false);
+    void tighten_should_removeNewlyUnderLimitEntries_when_complexityCapRaised() {
+        ScoredMethod underNewCap = method("fixed", 14.0, 16);
+        ScoredMethod stillOver = method("debt", 30.0, 20);
+        Baseline original = baseline(
+                entry("fixed", 14.0, 16),
+                entry("debt", 30.0, 20));
+        GateConfig raised = new GateConfig(15.0, 20, CoverageSelection.BRANCH_PREFERRED, false, false);
 
-        assertThatThrownBy(() -> new BaselineOperations()
-                        .tighten(original, new ScoringResult(List.of(method), 0),
-                                higherCap, "0.2.0", NOW))
-                .isInstanceOf(BaselineMismatchException.class)
-                .hasMessageContaining("complexity cap");
+        Baseline tightened = new BaselineOperations().tighten(
+                original, new ScoringResult(List.of(underNewCap, stillOver), 0),
+                raised, "0.2.0", NOW);
+
+        assertThat(tightened.entries())
+                .containsExactly(entry("debt", 30.0, 20));
+        assertThat(tightened.complexityCap()).isEqualTo(20);
+    }
+
+    @Test
+    void tighten_should_neverAddEntries_when_policyDiffers() {
+        ScoredMethod existing = method("baselined", 20.0, 16);
+        ScoredMethod newViolation = method("newDebt", 18.0, 14);
+        Baseline original = baseline(entry("baselined", 20.0, 16));
+        GateConfig lowered = new GateConfig(10.0, 15, CoverageSelection.BRANCH_PREFERRED, false, false);
+
+        Baseline tightened = new BaselineOperations().tighten(
+                original, new ScoringResult(List.of(existing, newViolation), 0),
+                lowered, "0.2.0", NOW);
+
+        assertThat(tightened.entries()).hasSize(1);
+        assertThat(tightened.entries().get(0).key()).isEqualTo(MethodKey.of(existing));
+        assertThat(tightened.threshold()).isEqualTo(10.0);
     }
 
     @Test

@@ -16,14 +16,14 @@ The CRAP metric and the original crap4j tool are the work of Alberto Savoia and 
 
 ### CLI
 
-Requires Java 17+. Download `crap4j-cli-0.1.0.jar` from Releases.
+Requires Java 17+. Download `crap4j-cli-1.0.0.jar` from Releases.
 
 ```sh
 # Gate a JaCoCo XML report (exit 2 on violations)
-java -jar crap4j-cli-0.1.0.jar check --report build/reports/jacoco/test/jacocoTestReport.xml
+java -jar crap4j-cli-1.0.0.jar check --report build/reports/jacoco/test/jacocoTestReport.xml
 
 # Advisory report (never fails)
-java -jar crap4j-cli-0.1.0.jar report --report build/reports/jacoco/test/jacocoTestReport.xml
+java -jar crap4j-cli-1.0.0.jar report --report build/reports/jacoco/test/jacocoTestReport.xml
 ```
 
 ### Gradle plugin
@@ -32,7 +32,7 @@ Apply the plugin in your module's `build.gradle.kts`. Requires Gradle 8.5+.
 
 ```kotlin
 plugins {
-    id("com.architester.crap4j") version "0.1.0"
+    id("com.architester.crap4j") version "1.0.0"
 }
 ```
 
@@ -58,7 +58,7 @@ A codebase with existing debt can adopt the gate in one session.
 
 ```sh
 # CLI
-java -jar crap4j-cli-0.1.0.jar baseline --report build/reports/jacoco/test/jacocoTestReport.xml
+java -jar crap4j-cli-1.0.0.jar baseline --report build/reports/jacoco/test/jacocoTestReport.xml
 
 # Gradle
 ./gradlew crapBaseline
@@ -72,7 +72,7 @@ This writes `crap4j-baseline.json` in the working directory (CLI) or project dir
 
 ```sh
 # CLI
-java -jar crap4j-cli-0.1.0.jar tighten --report build/reports/jacoco/test/jacocoTestReport.xml
+java -jar crap4j-cli-1.0.0.jar tighten --report build/reports/jacoco/test/jacocoTestReport.xml
 
 # Gradle
 ./gradlew crapBaselineTighten
@@ -202,7 +202,7 @@ become source-line annotations, and the JSON artifact contains every scored meth
 ```yaml
 - name: CRAP report
   run: |
-    java -jar crap4j-cli-0.1.0.jar report \
+    java -jar crap4j-cli-1.0.0.jar report \
       --report build/reports/jacoco/test/jacocoTestReport.xml \
       --github-summary "$GITHUB_STEP_SUMMARY" \
       --github-annotations \
@@ -240,7 +240,7 @@ Score only the methods that changed in a PR. Pipe the diff file list into `--cha
 - name: CRAP gate (changed files only)
   run: |
     git diff --name-only origin/main... \
-      | java -jar crap4j-cli-0.1.0.jar check \
+      | java -jar crap4j-cli-1.0.0.jar check \
           --report build/reports/jacoco/test/jacocoTestReport.xml \
           --changed-files -
 ```

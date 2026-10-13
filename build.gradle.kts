@@ -4,7 +4,7 @@ import org.cyclonedx.model.Component
 
 plugins {
     base
-    id("org.cyclonedx.bom") version "3.4.1"
+    id("org.cyclonedx.bom") version "3.5.0"
     id("com.vanniktech.maven.publish") version "0.37.0" apply false
     id("com.gradle.plugin-publish") version "2.1.1" apply false
 }
